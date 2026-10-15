@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coaching de gestor · agentic-app</title>
+<style>
+:root{--bg:#0c0c10;--bg2:#14141b;--card:#16161e;--line:#272730;--txt:#e9e9ee;--mut:#9a9aa6;--amb:#FACC15;
+--ok:#4ade80;--warn:#f59e0b;--bad:#f87171;--on:#1a1206}
+@media (prefers-color-scheme: light){:root{--bg:#f6f7f9;--bg2:#eceef2;--card:#fff;--line:#e1e3ea;--txt:#1a1a22;--mut:#5b5b68;
+--amb:#a16207;--ok:#15803d;--warn:#b45309;--bad:#b91c1c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.5 Inter,system-ui,sans-serif}
+header{position:sticky;top:0;z-index:2;background:var(--bg2);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header b{font-family:Sora,system-ui;color:var(--amb)} header .mut{color:var(--mut);font-size:.85rem}
+main{max-width:1200px;margin:0 auto;padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+section.largo{grid-column:1/-1}
+h2{font-family:Sora,system-ui;font-size:1.05rem;margin:0 0 4px} .sub{color:var(--mut);font-size:.82rem;margin:0 0 12px}
+button{font:600 .88rem Sora,system-ui;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--txt);padding:.5em .9em;cursor:pointer}
+button.pri{background:var(--amb);color:var(--on);border-color:var(--amb)}
+button:disabled{opacity:.5;cursor:not-allowed}
+select,textarea,input{font:inherit;color:var(--txt);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:.45em .6em;width:100%}
+select{width:auto}
+textarea{min-height:120px;resize:vertical}
+table{width:100%;border-collapse:collapse} td,th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;font-size:.88rem}
+th{color:var(--mut);font-weight:600}
+.tab{overflow-x:auto}
+.bar{height:8px;border-radius:6px;background:var(--line);width:110px;display:inline-block;vertical-align:middle;overflow:hidden}
+.bar i{display:block;height:100%}
+.tag{border:1px solid;border-radius:999px;padding:1px 8px;font-size:.75rem;white-space:nowrap}
+.item{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;background:var(--bg)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.msg{font-size:.85rem;color:var(--mut);margin-top:8px;min-height:1.2em}
+.err{color:var(--bad)}
+code{font-family:"JetBrains Mono",monospace;font-size:.8rem}
+.fluxo{font-family:"JetBrains Mono",monospace;font-size:.75rem;color:var(--mut);word-break:break-word}
+</style>
+</head>
+<body>
+<header>
+  <b>Coaching de gestor</b><span class="mut">app de referência do agentic-app · dados fictícios · LLM local/fake</span>
+  <span style="flex:1"></span>
+  <label class="mut" for="quem">Entrar como</label>
+  <select id="quem"></select>
+</header>
+<main>
+  <section class="largo">
+    <h2>Painel de engajamento</h2>
+    <p class="sub">Leitura direta dos dados (sem LLM). Situação = rótulo + cor, nunca só cor.</p>
+    <div class="tab"><table id="equipe"></table></div>
+  </section>
+
+  <section>
+    <h2>Follow-up para quem não bateu a meta</h2>
+    <p class="sub">Componente → workflow <code>followup_metas</code>. Nada sai sem você revisar e aprovar.</p>
+    <button class="pri" id="btFollow">Gerar rascunhos</button>
+    <div class="msg" id="msgFollow"></div>
+    <div id="pendentes"></div>
+  </section>
+
+  <section>
+    <h2>Próximos passos (agente de fundo)</h2>
+    <p class="sub">Roda sozinho toda segunda 08:00 (<code>proximos_passos</code>). Executar uma sugestão gera rascunho para revisão.</p>
+    <div class="row"><button id="btAgente">Rodar agente agora</button><button id="btTick">Simular segunda 08:00</button></div>
+    <div class="msg" id="msgAgente"></div>
+    <div id="sugestoes"></div>
+  </section>
+
+  <section>
+    <h2>Assistente de RH: férias e licença</h2>
+    <p class="sub">Classifica a pergunta, carrega só a política certa e dá ao agente só as ferramentas dela.</p>
+    <label class="sub" for="colab">Colaborador</label>
+    <select id="colab"></select>
+    <textarea id="pergunta" style="min-height:70px;margin-top:8px">Quantos dias de férias eu tenho?</textarea>
+    <div class="row"><button class="pri" id="btRH">Perguntar</button><button id="btEvento">Simular e-mail recebido</button></div>
+    <div class="msg" id="msgRH"></div>
+    <div id="respRH"></div>
+  </section>
+
+  <section>
+    <h2>Relatório visual</h2>
+    <p class="sub">Workflow <code>relatorio_equipe</code> gera HTML e PDF.</p>
+    <button class="pri" id="btRel">Gerar relatório</button>
+    <div class="msg" id="msgRel"></div>
+  </section>
+
+  <section class="largo">
+    <h2>Workflows e permissões</h2>
+    <p class="sub">Quem executa, com qual identidade o workflow age, e a sequência de nós.</p>
+    <div class="tab"><table id="wfs"></table></div>
+  </section>
+
+  <section class="largo">
+    <h2>Audit log</h2>
+    <p class="sub">Uma linha por execução, aprovação ou negação. Encadeado por hash.</p>
+    <div class="tab"><table id="audit"></table></div>
+  </section>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const COR = {em_dia:"var(--ok)", atencao:"var(--warn)", atrasado:"var(--bad)"};
+const ROT = {em_dia:"em dia", atencao:"atenção", atrasado:"meta vencida"};
+let uid = "ana", E = null;
+try { uid = localStorage.getItem("agentic-uid") || "ana"; } catch (e) {}
+
+async function api(metodo, rota, corpo) {
+  const r = await fetch(rota, {method: metodo, headers: {"content-type":"application/json", "X-Usuario": uid},
+                               body: corpo ? JSON.stringify(corpo) : undefined});
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.erro || r.status);
+  return j;
+}
+function msg(id, texto, erro) { const el = $(id); el.textContent = texto; el.className = "msg" + (erro ? " err" : ""); }
+
+async function carregar() {
+  E = await api("GET", "/api/estado");
+  $("#quem").innerHTML = E.usuarios.map(u => `<option value="${u.id}" ${u.id===uid?"selected":""}>${esc(u.nome)} (${u.papeis.join(", ")})</option>`).join("");
+  const p = E.painel;
+  $("#equipe").innerHTML = `<tr><th>Pessoa</th><th>Metas</th><th>Engajamento</th><th>Último 1:1</th><th>Situação</th></tr>` +
+    p.pessoas.map(x => `<tr><td><b>${esc(x.nome)}</b><br><span class="sub">${esc(x.cargo)}</span></td>
+      <td><span class="bar"><i style="width:${x.progresso_medio}%;background:${COR[x.status]}"></i></span> ${x.progresso_medio}%</td>
+      <td>${x.engajamento} (${x.tendencia>0?"+":""}${x.tendencia})</td><td>${x.dias_sem_1a1} dias</td>
+      <td><span class="tag" style="border-color:${COR[x.status]}">${ROT[x.status]}</span></td></tr>`).join("");
+  $("#colab").innerHTML = p.pessoas.map(x => `<option value="${x.id}">${esc(x.nome)}</option>`).join("");
+  $("#pendentes").innerHTML = E.pendentes.length ? E.pendentes.map(a => `<div class="item" data-id="${a.id}">
+      <div class="sub">${a.id} · ${esc(a.workflow)} · para <b>${esc(a.payload.para)}</b></div>
+      <input class="assunto" value="${esc(a.payload.assunto)}" ${a.editaveis.includes("assunto")?"":"disabled"}>
+      <textarea class="corpo" style="margin-top:6px">${esc(a.payload.corpo)}</textarea>
+      <div class="row"><button class="pri aprovar">Aprovar e enviar</button><button class="rejeitar">Rejeitar</button></div></div>`).join("")
+    : `<p class="sub">Nenhum rascunho aguardando aprovação.</p>`;
+  $("#sugestoes").innerHTML = E.sugestoes.length ? E.sugestoes.map(s => `<div class="item">
+      <b>${esc(s.titulo)}</b><div class="sub">prioridade ${s.prioridade} · workflow <code>${esc(s.workflow)}</code></div>
+      <div class="row"><button class="exec" data-id="${s.id}">Executar (vai para revisão)</button></div></div>`).join("")
+    : `<p class="sub">Sem sugestões ainda. Rode o agente.</p>`;
+  $("#wfs").innerHTML = `<tr><th>Workflow</th><th>Resultado de negócio</th><th>Quem executa</th><th>Age como</th><th>Nós</th></tr>` +
+    Object.entries(E.workflows).map(([id, w]) => `<tr><td><code>${id}</code></td><td>${esc(w.resultado)}</td>
+      <td>${w.executar.join(", ")}</td><td><code>${w.identidade}</code></td><td class="fluxo">${w.nos.join(" → ")}</td></tr>`).join("");
+  const log = await api("GET", "/api/audit");
+  $("#audit").innerHTML = `<tr><th>Evento</th><th>Workflow / ação</th><th>Usuário</th><th>Identidade</th><th>Gatilho</th><th>Status</th><th>hash</th></tr>` +
+    log.slice().reverse().map(l => `<tr><td>${esc(l.evento)}</td><td><code>${esc(l.run_id || l.acao || "")}</code></td>
+      <td>${esc(l.usuario || l.aprovado_por || l.rejeitado_por || "")}</td><td>${esc(l.identidade || "")}</td>
+      <td>${esc(l.gatilho || "")}</td><td>${esc(l.status || (l.editado ? "editado" : ""))}</td><td><code>${l.hash}</code></td></tr>`).join("");
+}
+
+async function acao(id, fn) { try { await fn(); } catch (e) { msg(id, e.message, true); } await carregar(); }
+
+$("#quem").onchange = e => { uid = e.target.value; try { localStorage.setItem("agentic-uid", uid); } catch (x) {} carregar(); };
+$("#btFollow").onclick = () => acao("#msgFollow", async () => {
+  const r = await api("POST", "/api/workflow/followup_metas", {entrada: {}});
+  msg("#msgFollow", `${r.saida.qtd} rascunho(s) criados, aguardando aprovação. run ${r.run_id}`);
+});
+$("#pendentes").onclick = e => {
+  const card = e.target.closest(".item"); if (!card) return;
+  const id = card.dataset.id;
+  if (e.target.classList.contains("aprovar")) acao("#msgFollow", async () => {
+    const a = E.pendentes.find(x => x.id === id), ed = {};
+    const assunto = card.querySelector(".assunto").value, corpo = card.querySelector(".corpo").value;
+    if (assunto !== a.payload.assunto && a.editaveis.includes("assunto")) ed.assunto = assunto;
+    if (corpo !== a.payload.corpo) ed.corpo = corpo;
+    const r = await api("POST", `/api/acoes/${id}/aprovar`, {edicoes: ed});
+    msg("#msgFollow", `${id} enviado para ${r.payload_final.para}${r.editado ? " (com sua edição)" : ""}.`);
+  });
+  if (e.target.classList.contains("rejeitar")) acao("#msgFollow", async () => {
+    await api("POST", `/api/acoes/${id}/rejeitar`, {motivo: "rejeitado no painel"}); msg("#msgFollow", `${id} rejeitado.`);
+  });
+};
+$("#btAgente").onclick = () => acao("#msgAgente", async () => {
+  const r = await api("POST", "/api/workflow/proximos_passos", {entrada: {}});
+  msg("#msgAgente", `${r.saida.sugestoes.length} sugestão(ões). run ${r.run_id}`);
+});
+$("#btTick").onclick = () => acao("#msgAgente", async () => {
+  const r = await api("POST", "/api/agendador/tick", {agora: "2026-10-19T08:00"});
+  msg("#msgAgente", r.length ? `Agendador rodou: ${r.join(", ")}` : "Nada agendado para esse horário (ou já rodou).");
+});
+$("#sugestoes").onclick = e => {
+  if (!e.target.classList.contains("exec")) return;
+  acao("#msgAgente", async () => {
+    const r = await api("POST", `/api/sugestoes/${e.target.dataset.id}/executar`);
+    msg("#msgAgente", `${r.propostas.length} rascunho(s) na fila de aprovação (painel de follow-up).`);
+  });
+};
+function mostraRH(r) {
+  const s = r.saida;
+  $("#respRH").innerHTML = `<div class="item"><b>${esc(s.resposta)}</b>
+    <div class="sub" style="margin-top:6px">categoria <code>${s.categoria}</code> · fonte <code>${s.fonte}</code>
+    ${s.ferramenta ? ` · ferramenta usada <code>${s.ferramenta}</code> · ofertadas <code>${s.ferramentas_ofertadas.join(", ")}</code>` : ""}
+    · identidade <code>${r.identidade}</code> · run ${r.run_id}</div></div>`;
+}
+$("#btRH").onclick = () => acao("#msgRH", async () => {
+  msg("#msgRH", "");
+  mostraRH(await api("POST", "/api/workflow/assistente_rh", {entrada: {colaborador_id: $("#colab").value, pergunta: $("#pergunta").value}}));
+});
+$("#btEvento").onclick = () => acao("#msgRH", async () => {
+  const [r] = await api("POST", "/api/eventos/email.recebido",
+    {de: "lucas.martins@exemplo.com", remetente_id: "lucas", corpo: "Oi RH, quantos dias de férias eu tenho direito?"});
+  mostraRH(r); msg("#msgRH", "Evento email.recebido → assistente_rh. A resposta foi para a fila de aprovação.");
+});
+$("#btRel").onclick = () => acao("#msgRel", async () => {
+  await api("POST", "/api/workflow/relatorio_equipe", {entrada: {}});
+  $("#msgRel").innerHTML = `Pronto: <a href="/saida/relatorio.html" target="_blank" style="color:var(--amb)">relatorio.html</a> · <a href="/saida/relatorio.pdf" target="_blank" style="color:var(--amb)">relatorio.pdf</a>`;
+});
+carregar().catch(e => document.body.insertAdjacentHTML("afterbegin", `<p class="err">${esc(e.message)}</p>`));
+</script>
+</body>
+</html>

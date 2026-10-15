@@ -1,0 +1,34 @@
+{
+  "id": "meu_workflow",
+  "versao": 1,
+  "titulo": "Nome curto do que o workflow entrega",
+  "resultado_de_negocio": "Uma frase com o resultado medido (copie do canvas).",
+  "seguranca": {"executar": ["gestor"], "identidade": "svc-minha-area"},
+  "gatilhos": [
+    {"tipo": "manual", "componente": "meu_botao"},
+    {"tipo": "agendado", "dia_semana": "seg", "hora": "08:00", "usuario": "sistema", "entrada": {}},
+    {"tipo": "evento", "nome": "meu.evento", "usuario": "sistema", "mapa": {"id": "$evento.id"}}
+  ],
+  "entrada": {
+    "type": "object",
+    "properties": {"id": {"type": "string"}},
+    "additionalProperties": false
+  },
+  "nos": [
+    {"id": "ctx", "tipo": "contexto", "carregar": "meus_dados", "args": {"id": "$entrada.id"}},
+    {"id": "calc", "tipo": "codigo", "funcao": "minha_regra", "args": {"dados": "$ctx"}},
+    {"id": "tem", "tipo": "condicao", "se": {"campo": "$calc.qtd", "op": ">", "valor": 0},
+     "entao": "texto", "senao": "vazio"},
+    {"id": "texto", "tipo": "llm", "modo": "redigir", "tarefa": "redacao",
+     "dados": "$calc", "modelo_texto": "Olá, {nome}! ..."},
+    {"id": "saida", "tipo": "formatacao", "proximo": "$fim",
+     "saida": {"texto": "$texto", "para": "$calc.email"},
+     "esquema": {"type": "object", "required": ["texto", "para"],
+                 "properties": {"texto": {"type": "string", "minLength": 20, "maxLength": 1200}}},
+     "propor_acao": {"tipo": "enviar_email",
+                     "payload": {"para": "$saida.para", "assunto": "Assunto", "corpo": "$saida.texto"},
+                     "editaveis": ["assunto", "corpo"]}},
+    {"id": "vazio", "tipo": "formatacao", "saida": {"texto": "nada a fazer"},
+     "esquema": {"type": "object", "required": ["texto"]}}
+  ]
+}

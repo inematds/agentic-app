@@ -1,0 +1,29 @@
+{
+  "id": "proximos_passos",
+  "versao": 1,
+  "titulo": "Agente de fundo: próximos passos do gestor",
+  "resultado_de_negocio": "O gestor começa a semana sabendo com quem falar primeiro e por quê.",
+  "seguranca": {"executar": ["sistema", "gestor"], "identidade": "svc-coaching"},
+  "gatilhos": [
+    {"tipo": "agendado", "dia_semana": "seg", "hora": "08:00", "usuario": "sistema", "entrada": {}},
+    {"tipo": "manual", "componente": "painel_sugestoes"}
+  ],
+  "entrada": {"type": "object", "additionalProperties": false},
+  "nos": [
+    {"id": "ctx", "tipo": "contexto", "carregar": "equipe"},
+    {"id": "sinais", "tipo": "codigo", "funcao": "detectar_sinais", "args": {"equipe": "$ctx"}},
+    {"id": "tem_sinal", "tipo": "condicao",
+     "se": {"campo": "$sinais.qtd", "op": ">", "valor": 0}, "entao": "texto", "senao": "vazio"},
+    {"id": "texto", "tipo": "llm", "modo": "redigir", "tarefa": "redacao",
+     "para_cada": "$sinais.itens", "campo": "titulo",
+     "modelo_texto": "{verbo} com {primeiro_nome}: {motivo}"},
+    {"id": "saida", "tipo": "formatacao", "proximo": "$fim",
+     "saida": {"sugestoes": "$texto"},
+     "esquema": {"type": "object", "required": ["sugestoes"], "properties": {"sugestoes": {
+       "type": "array", "items": {"type": "object", "required": ["id", "titulo", "workflow", "entrada", "prioridade"],
+         "properties": {"workflow": {"type": "string", "enum": ["followup_metas", "convite_1a1"]},
+                        "prioridade": {"type": "integer", "minimum": 1, "maximum": 3}}}}}}},
+    {"id": "vazio", "tipo": "formatacao", "saida": {"sugestoes": []},
+     "esquema": {"type": "object", "required": ["sugestoes"]}}
+  ]
+}

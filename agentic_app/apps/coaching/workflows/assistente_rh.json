@@ -1,0 +1,53 @@
+{
+  "id": "assistente_rh",
+  "versao": 1,
+  "titulo": "Assistente de RH: férias e licença parental",
+  "resultado_de_negocio": "Pergunta de férias/licença respondida com o número certo da política, sem abrir chamado.",
+  "seguranca": {"executar": ["colaborador", "gestor", "rh", "sistema"], "identidade": "svc-rh"},
+  "gatilhos": [
+    {"tipo": "manual", "componente": "caixa_pergunta_rh"},
+    {"tipo": "evento", "nome": "email.recebido", "usuario": "sistema",
+     "mapa": {"colaborador_id": "$evento.remetente_id", "pergunta": "$evento.corpo", "responder_para": "$evento.de"}}
+  ],
+  "entrada": {
+    "type": "object", "required": ["colaborador_id", "pergunta"],
+    "properties": {"colaborador_id": {"type": "string", "minLength": 1},
+                   "pergunta": {"type": "string", "minLength": 3, "maxLength": 500},
+                   "responder_para": {"type": "string"}},
+    "additionalProperties": false
+  },
+  "nos": [
+    {"id": "perfil", "tipo": "contexto", "carregar": "perfil_rh", "args": {"id": "$entrada.colaborador_id", "usuario": "$usuario"}},
+    {"id": "categoria", "tipo": "llm", "modo": "classificar", "tarefa": "classificacao",
+     "texto": "$entrada.pergunta", "rotulos": ["ferias", "licenca_parental", "outro"],
+     "dicas": {"ferias": ["férias", "ferias", "descanso", "fracionar"],
+               "licenca_parental": ["licença", "maternidade", "paternidade", "adoção", "adotar", "bebê", "gestante", "parental", "filho"]}},
+    {"id": "eh_critica", "tipo": "condicao",
+     "se": {"campo": "$categoria", "op": "!=", "valor": "outro"}, "entao": "dados", "senao": "faq"},
+    {"id": "dados", "tipo": "codigo", "funcao": "extrair_dados_pedido",
+     "args": {"pergunta": "$entrada.pergunta", "perfil": "$perfil"}},
+    {"id": "agente", "tipo": "llm", "modo": "agente", "tarefa": "agente",
+     "pergunta": "$entrada.pergunta", "ferramentas": "$categoria", "contexto": "$dados"},
+    {"id": "explica", "tipo": "codigo", "funcao": "explicar_resultado",
+     "args": {"perfil": "$perfil", "agente": "$agente"}},
+    {"id": "saida", "tipo": "formatacao", "proximo": "$fim",
+     "saida": {"categoria": "$categoria", "critica": true, "fonte": "politica_codificada",
+               "ferramenta": "$agente.ferramenta", "ferramentas_ofertadas": "$agente.ofertadas",
+               "resultado": "$agente.resultado", "resposta": "$explica"},
+     "esquema": {"type": "object", "required": ["categoria", "ferramenta", "resposta"],
+                 "properties": {"categoria": {"type": "string", "enum": ["ferias", "licenca_parental"]},
+                                "resposta": {"type": "string", "minLength": 20, "maxLength": 600}}},
+     "propor_acao": {"tipo": "enviar_email", "se": "$entrada.responder_para",
+                     "payload": {"para": "$entrada.responder_para", "assunto": "Resposta do RH", "corpo": "$explica"},
+                     "editaveis": ["corpo"]}},
+    {"id": "faq", "tipo": "contexto", "carregar": "faq"},
+    {"id": "busca", "tipo": "codigo", "funcao": "buscar_faq", "args": {"faq": "$faq", "pergunta": "$entrada.pergunta"}},
+    {"id": "saida_faq", "tipo": "formatacao",
+     "saida": {"categoria": "outro", "critica": false, "fonte": "busca_faq", "resposta": "$busca.resposta"},
+     "esquema": {"type": "object", "required": ["categoria", "resposta"],
+                 "properties": {"categoria": {"type": "string", "enum": ["outro"]}, "resposta": {"type": "string"}}},
+     "propor_acao": {"tipo": "enviar_email", "se": "$entrada.responder_para",
+                     "payload": {"para": "$entrada.responder_para", "assunto": "Resposta do RH", "corpo": "$busca.resposta"},
+                     "editaveis": ["corpo"]}}
+  ]
+}

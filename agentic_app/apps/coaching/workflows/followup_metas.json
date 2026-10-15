@@ -1,0 +1,42 @@
+{
+  "id": "followup_metas",
+  "versao": 1,
+  "titulo": "Follow-up por e-mail para quem não bateu a meta",
+  "resultado_de_negocio": "Nenhuma meta de desenvolvimento vencida fica sem conversa na mesma semana.",
+  "seguranca": {"executar": ["gestor", "sistema"], "identidade": "svc-coaching"},
+  "gatilhos": [{"tipo": "manual", "componente": "botao_followup"}],
+  "entrada": {
+    "type": "object",
+    "properties": {"liderado_ids": {"type": "array", "items": {"type": "string"}}},
+    "additionalProperties": false
+  },
+  "nos": [
+    {"id": "ctx", "tipo": "contexto", "carregar": "equipe"},
+    {"id": "pendentes", "tipo": "codigo", "funcao": "metas_atrasadas",
+     "args": {"equipe": "$ctx", "filtro": "$entrada"}},
+    {"id": "tem_pendente", "tipo": "condicao",
+     "se": {"campo": "$pendentes.qtd", "op": ">", "valor": 0}, "entao": "rascunhos", "senao": "vazio"},
+    {"id": "rascunhos", "tipo": "llm", "modo": "redigir", "tarefa": "redacao",
+     "para_cada": "$pendentes.itens", "campo": "corpo",
+     "dados": {"gestor": "$ctx.gestor.nome"},
+     "instrucao": "Tom de apoio, sem cobrança pública. Proponha uma conversa curta.",
+     "modelo_texto": "Olá, {primeiro_nome}!\n\nPassando para falar da meta \"{meta}\", que venceu em {prazo_br} e está em {progresso}%. Sei que a rotina aperta. Que tal 20 minutos esta semana para ver o que travou e o que eu posso destravar?\n\nUm abraço,\n{gestor}"},
+    {"id": "saida", "tipo": "formatacao", "proximo": "$fim",
+     "saida": {"titulo": "Follow-up de metas", "qtd": "$pendentes.qtd", "rascunhos": "$rascunhos"},
+     "esquema": {
+       "type": "object", "required": ["titulo", "qtd", "rascunhos"],
+       "properties": {
+         "titulo": {"type": "string"}, "qtd": {"type": "integer", "minimum": 1},
+         "rascunhos": {"type": "array", "minItems": 1, "items": {
+           "type": "object", "required": ["id", "nome", "email", "assunto", "corpo"],
+           "properties": {"email": {"type": "string", "minLength": 5},
+                          "assunto": {"type": "string", "maxLength": 120},
+                          "corpo": {"type": "string", "minLength": 40, "maxLength": 1200}}}}}},
+     "propor_acao": {"tipo": "enviar_email", "para_cada": "$saida.rascunhos",
+                     "payload": {"para": "$item.email", "assunto": "$item.assunto", "corpo": "$item.corpo"},
+                     "editaveis": ["assunto", "corpo"]}},
+    {"id": "vazio", "tipo": "formatacao",
+     "saida": {"titulo": "Follow-up de metas", "qtd": 0, "rascunhos": []},
+     "esquema": {"type": "object", "required": ["qtd"], "properties": {"qtd": {"type": "integer", "maximum": 0}}}}
+  ]
+}

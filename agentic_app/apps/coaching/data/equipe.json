@@ -1,0 +1,32 @@
+{
+  "_aviso": "Dados FICTÍCIOS para o app de referência. Nomes e e-mails inventados.",
+  "data_referencia": "2026-10-15",
+  "empresa": "Empresa Exemplo",
+  "gestor": {"id": "ana", "nome": "Ana Ribeiro", "email": "ana.ribeiro@exemplo.com", "area": "Operações"},
+  "liderados": [
+    {"id": "bruno", "nome": "Bruno Tavares", "email": "bruno.tavares@exemplo.com", "cargo": "Analista de dados", "admissao": "2024-03-04", "ultimo_1a1": "2026-10-06", "engajamento": [78, 80, 82, 84],
+     "metas": [{"titulo": "Certificação em SQL avançado", "progresso": 100, "prazo": "2026-09-30"}, {"titulo": "Apresentar painel de custos", "progresso": 70, "prazo": "2026-11-15"}]},
+    {"id": "carla", "nome": "Carla Mendes", "email": "carla.mendes@exemplo.com", "cargo": "Coordenadora de atendimento", "admissao": "2015-06-01", "ultimo_1a1": "2026-09-02", "engajamento": [85, 79, 72, 64],
+     "metas": [{"titulo": "Curso de liderança situacional", "progresso": 40, "prazo": "2026-09-30"}, {"titulo": "Mentorar 2 novos atendentes", "progresso": 50, "prazo": "2026-10-10"}]},
+    {"id": "diego", "nome": "Diego Sato", "email": "diego.sato@exemplo.com", "cargo": "Desenvolvedor", "admissao": "2026-02-02", "ultimo_1a1": "2026-10-08", "engajamento": [70, 74, 77, 81],
+     "metas": [{"titulo": "Concluir trilha de testes automatizados", "progresso": 90, "prazo": "2026-12-01"}]},
+    {"id": "elisa", "nome": "Elisa Rocha", "email": "elisa.rocha@exemplo.com", "cargo": "Analista financeira", "admissao": "2020-08-17", "ultimo_1a1": "2026-08-20", "engajamento": [66, 63, 61, 58],
+     "metas": [{"titulo": "Modelo de previsão de caixa", "progresso": 30, "prazo": "2026-09-15"}, {"titulo": "Curso de Excel avançado", "progresso": 100, "prazo": "2026-07-31"}]},
+    {"id": "felipe", "nome": "Felipe Andrade", "email": "felipe.andrade@exemplo.com", "cargo": "Comprador", "admissao": "2012-01-09", "ultimo_1a1": "2026-10-01", "engajamento": [88, 88, 90, 91],
+     "metas": [{"titulo": "Negociação com 3 fornecedores novos", "progresso": 100, "prazo": "2026-09-30"}]},
+    {"id": "gabriela", "nome": "Gabriela Lima", "email": "gabriela.lima@exemplo.com", "cargo": "Analista de RH", "admissao": "2023-11-20", "ultimo_1a1": "2026-10-09", "engajamento": [80, 81, 79, 80],
+     "metas": [{"titulo": "Mapear trilhas de carreira", "progresso": 60, "prazo": "2026-10-05"}]},
+    {"id": "henrique", "nome": "Henrique Costa", "email": "henrique.costa@exemplo.com", "cargo": "Técnico de suporte", "admissao": "2026-06-15", "ultimo_1a1": "2026-09-10", "engajamento": [75, 70, 68, 65],
+     "metas": [{"titulo": "Base de conhecimento com 20 artigos", "progresso": 35, "prazo": "2026-10-01"}]},
+    {"id": "isabela", "nome": "Isabela Nunes", "email": "isabela.nunes@exemplo.com", "cargo": "Designer", "admissao": "2019-04-01", "ultimo_1a1": "2026-10-07", "engajamento": [83, 85, 86, 88],
+     "metas": [{"titulo": "Guia de estilo da marca", "progresso": 100, "prazo": "2026-09-01"}, {"titulo": "Workshop de acessibilidade", "progresso": 80, "prazo": "2026-11-30"}]},
+    {"id": "joao", "nome": "João Pereira", "email": "joao.pereira@exemplo.com", "cargo": "Vendedor", "admissao": "2021-09-13", "ultimo_1a1": "2026-10-03", "engajamento": [72, 73, 71, 72],
+     "metas": [{"titulo": "Curso de vendas consultivas", "progresso": 55, "prazo": "2026-10-12"}]},
+    {"id": "karina", "nome": "Karina Alves", "email": "karina.alves@exemplo.com", "cargo": "Analista de qualidade", "admissao": "2016-02-22", "ultimo_1a1": "2026-10-10", "engajamento": [90, 89, 91, 92],
+     "metas": [{"titulo": "Auditoria interna ISO", "progresso": 100, "prazo": "2026-09-20"}]},
+    {"id": "lucas", "nome": "Lucas Martins", "email": "lucas.martins@exemplo.com", "cargo": "Assistente administrativo", "admissao": "2025-10-01", "ultimo_1a1": "2026-08-28", "engajamento": [68, 66, 64, 60],
+     "metas": [{"titulo": "Digitalizar arquivo de contratos", "progresso": 20, "prazo": "2026-09-30"}]},
+    {"id": "mariana", "nome": "Mariana Freitas", "email": "mariana.freitas@exemplo.com", "cargo": "Gerente de projetos júnior", "admissao": "2022-05-02", "ultimo_1a1": "2026-10-02", "engajamento": [79, 82, 84, 85],
+     "metas": [{"titulo": "Certificação em gestão ágil", "progresso": 85, "prazo": "2026-12-15"}]}
+  ]
+}

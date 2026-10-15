@@ -1,0 +1,16 @@
+{
+  "_aviso": "Usuários fictícios e contas de serviço do app de referência.",
+  "usuarios": [
+    {"id": "ana", "nome": "Ana Ribeiro", "papeis": ["gestor"]},
+    {"id": "rosa", "nome": "Rosa Prado", "papeis": ["rh"]},
+    {"id": "bruno", "nome": "Bruno Tavares", "papeis": ["colaborador"]},
+    {"id": "sistema", "nome": "Agendador", "papeis": ["sistema"]}
+  ],
+  "identidades": [
+    {"id": "svc-coaching", "escopos": ["equipe.ler"]},
+    {"id": "svc-rh", "escopos": ["rh.perfil.ler", "rh.faq.ler"]}
+  ],
+  "aprovadores": {
+    "enviar_email": ["gestor", "rh"]
+  }
+}

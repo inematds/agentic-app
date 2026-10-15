@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agentic-app — agentes dentro de workflows de negócio</title>
+<meta name="description" content="Framework em Python (só biblioteca padrão) para apps de IA construídas em torno de um resultado de negócio: workflow determinístico, humano aprova toda ação, política vira código testado e cada execução fica no audit log.">
+<link rel="alternate" hreflang="pt-BR" href="https://inematds.github.io/agentic-app/guia/">
+<link rel="alternate" hreflang="en" href="https://inematds.github.io/agentic-app/guia/en/">
+<link rel="alternate" hreflang="es" href="https://inematds.github.io/agentic-app/guia/es/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0c10; --bg2:#14141b; --card:#16161e; --line:#272730;
+    --txt:#e9e9ee; --mut:#9a9aa6; --amb:#FACC15; --amb2:#f0c070; --sky:#38bdf8; --pro:#cbd5e1;
+    color-scheme:dark;
+  }
+  body.light{
+    --bg:#f6f7f9; --bg2:#eceef2; --card:#ffffff; --line:#e1e3ea;
+    --txt:#1a1a22; --mut:#5b5b68; --amb:#a16207; --amb2:#a16207; --sky:#0369a1; --pro:#b45309;
+    color-scheme:light;
+  }
+  body.light .hero .glow{opacity:.5}
+  body.light pre{background:#0e0e14;color:#d6d6e0}
+  body.light pre .c{color:#8a8a98}
+  body.light pre .k{color:#f0c070}
+  body.light .step .b{background:#FACC15}
+  body.light nav{background:rgba(246,247,249,.85)}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.65 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:Sora,sans-serif;line-height:1.15;margin:0}
+  a{color:var(--amb);text-decoration:none}
+  code,pre{font-family:"JetBrains Mono",monospace}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+  .mut{color:var(--mut)} .amb{color:var(--amb)}
+  .chip{display:inline-block;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amb);font-weight:600;font-family:Sora}
+  nav{position:sticky;top:0;z-index:30;backdrop-filter:blur(12px);background:rgba(12,12,16,.78);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;gap:22px;height:60px}
+  nav .brand{display:flex;align-items:center;gap:8px;font-family:Sora;font-weight:800;letter-spacing:-.02em;color:var(--amb)}
+  nav .brand .emoji{font-size:1.25rem}
+  nav .sep{color:var(--mut);opacity:.45}
+  nav .inema{color:var(--sky);font-weight:600;font-size:.88rem;font-family:Sora}
+  nav .inema:hover{filter:brightness(1.15)}
+  nav .pro{color:var(--pro);font-weight:600;font-size:.88rem;font-family:Sora}
+  nav .pro:hover{filter:brightness(1.15)}
+  nav .clubpro{display:inline-flex;align-items:center;gap:6px}
+  nav .links{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:.92rem}
+  nav .links a.sec{color:var(--mut)} nav .links a.sec:hover{color:var(--txt)}
+  .lang{display:inline-flex;gap:2px;font-family:Sora;font-size:.78rem}
+  .lang a{color:var(--mut);padding:.2em .45em;border-radius:6px} .lang a.on{color:var(--amb);background:rgba(250,204,21,.12)}
+  .tgl{background:var(--bg2);border:1px solid var(--line);color:var(--txt);width:38px;height:38px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:1.05rem}
+  .tgl:hover{border-color:var(--amb)}
+  .btn{display:inline-block;background:var(--amb);color:#1a1206;font-weight:600;padding:.6em 1.05em;border-radius:10px;font-family:Sora}
+  body.light .btn{background:#FACC15}
+  .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+  nav .brand,nav .links a.sec{white-space:nowrap}
+  @media(max-width:1180px){nav .links a.sec{display:none}}
+  @media(max-width:520px){nav .wrap{gap:8px;padding:8px 14px;height:auto;flex-wrap:wrap} nav .links{gap:8px;margin-left:0;width:100%;justify-content:space-between} nav .btn{padding:.45em .7em;font-size:.82rem} .tgl{width:34px;height:34px}}
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .hero .glow{position:absolute;inset:-40% -20% auto auto;width:70%;height:600px;background:radial-gradient(closest-side,rgba(250,204,21,.18),transparent 70%);pointer-events:none}
+  .hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:74px 22px}
+  .hero h1{font-size:clamp(2.2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.025em}
+  .hero p.lead{font-size:1.18rem;color:var(--mut);margin:1.1em 0 1.6em;max-width:34ch}
+  .hero .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .hero figure{margin:0;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px -30px #000}
+  .hero figure img{width:100%;display:block}
+  .resumo{padding:38px 0 34px;border-bottom:1px solid var(--line)}
+  .resumo p{font-size:1.12rem;line-height:1.7;max-width:74ch;margin:.55em 0 0}
+  @media(max-width:780px){.hero .wrap{grid-template-columns:1fr;padding:48px 22px}}
+  section{padding:62px 0;border-bottom:1px solid var(--line)}
+  section h2{font-size:clamp(1.5rem,3.4vw,2.1rem);font-weight:800;letter-spacing:-.02em}
+  section .sub{color:var(--mut);margin:.6em 0 2em;max-width:62ch}
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:820px){.g3,.g4{grid-template-columns:1fr 1fr}}
+  @media(max-width:540px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card h3{font-size:1.05rem;margin-bottom:.4em}
+  .card p{color:var(--mut);font-size:.92rem;margin:0}
+  .card p+p{margin-top:.5em}
+  .num{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:8px;background:rgba(250,204,21,.14);color:var(--amb);font-family:Sora;font-weight:800;font-size:.9rem;margin-bottom:.7em}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+  .flow span{background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:.45em .9em;font-size:.85rem;font-family:Sora;font-weight:600}
+  .flow .arr{color:var(--amb);border:none;background:none;padding:0 .1em}
+  pre{background:#0a0a0e;border:1px solid var(--line);border-radius:12px;padding:16px 18px;overflow:auto;font-size:.86rem;line-height:1.6;color:#d6d6e0}
+  pre .c{color:#6f6f7c} pre .k{color:var(--amb2)} pre .s{color:#9ece6a}
+  .step{display:grid;grid-template-columns:46px minmax(0,1fr);gap:16px;margin-bottom:26px}
+  .step>div,.card{min-width:0}
+  p code,li code,td code{overflow-wrap:anywhere}
+  .step .b{width:46px;height:46px;border-radius:12px;background:var(--amb);color:#1a1206;font-family:Sora;font-weight:800;font-size:1.25rem;display:flex;align-items:center;justify-content:center}
+  .step h3{font-size:1.12rem;margin-bottom:.3em}
+  .step p{color:var(--mut);margin:.2em 0 .7em}
+  .ex{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:680px){.ex{grid-template-columns:1fr}}
+  .ex figure{margin:0;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+  .ex figure img{width:100%;display:block}
+  .ex figcaption{padding:12px 14px;font-size:.88rem;color:var(--mut);background:var(--card)}
+  .phase{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .phase:last-child{border:none}
+  .phase .tag{flex:0 0 92px;font-family:Sora;font-weight:800;color:var(--amb)}
+  .phase .d strong{display:block;margin-bottom:.2em}
+  .phase .d span{color:var(--mut);font-size:.92rem}
+  .tabela{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+  table{width:100%;border-collapse:collapse;min-width:620px}
+  th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);font-size:.92rem;vertical-align:top}
+  th{font-family:Sora;font-size:.8rem;color:var(--mut);background:var(--bg2)}
+  tr:last-child td{border-bottom:none}
+  .videos .vazio{border:1px dashed var(--line);border-radius:14px;padding:28px;color:var(--mut);text-align:center}
+  footer{padding:46px 0;text-align:center;color:var(--mut);font-size:.9rem}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:.3em .8em;font-size:.78rem;color:var(--mut);margin:0 4px}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="#top"><span class="emoji">🧭</span> agentic-app</a>
+  <span class="sep">|</span>
+  <span class="clubpro">
+    <a class="inema" href="https://inema.club" target="_blank" rel="noopener">INEMA.CLUB</a>
+    <span class="sep">-</span>
+    <a class="pro" href="https://inema.pro" target="_blank" rel="noopener">PRO</a>
+  </span>
+  <div class="links">
+    <a class="sec" href="#oque">O que é</a>
+    <a class="sec" href="#pilares">Pilares</a>
+    <a class="sec" href="#guia">Guia de uso</a>
+    <a class="sec" href="#videos">Vídeos</a>
+    <a class="sec" href="#encaixe">Onde se encaixa</a>
+    <span class="lang"><a class="on" href="./">PT</a><a href="en/">EN</a><a href="es/">ES</a></span>
+    <button class="tgl" id="themeToggle" aria-label="Alternar tema" title="Alternar tema">🌙</button>
+    <a class="btn" href="https://github.com/inematds/agentic-app" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+
+<header class="hero" id="top">
+  <div class="glow"></div>
+  <div class="wrap">
+    <div>
+      <span class="chip">Framework · Python sem dependências</span>
+      <h1>O agente é ferramenta. O centro é o <span class="amb">resultado</span>.</h1>
+      <p class="lead">Monte apps de IA em que o LLM roda dentro de um workflow fixo, a pessoa aprova toda ação e a política da empresa vira código testado.</p>
+      <div class="cta">
+        <a class="btn" href="#guia">Começar o guia</a>
+        <a class="btn ghost" href="https://github.com/inematds/agentic-app" target="_blank" rel="noopener">Ver no GitHub</a>
+      </div>
+    </div>
+    <figure><img src="assets/banner.jpg" alt="Banner do Agentic App: agentes dentro de workflows que entregam resultado de negócio"></figure>
+  </div>
+</header>
+
+<section id="resumo" class="resumo"><div class="wrap">
+  <span class="chip">Em resumo</span>
+  <p>O agentic-app é um framework em Python para empresas construírem apps de IA a partir de um resultado de negócio, e não a partir do agente. Ele serve para quem precisa colocar IA dentro de um processo real (RH, gestão de pessoas, atendimento) com controle: o LLM roda dentro de um workflow fixo, toda ação externa espera aprovação humana, regras com número viram código testado e cada execução fica registrada. Vem com um app completo de exemplo (coaching de gestor) e roda só com o Python 3 instalado, sem chave e sem internet.</p>
+</div></section>
+
+<section id="oque"><div class="wrap">
+  <span class="chip">O que é</span>
+  <h2>Uma app em volta de uma decisão, não um chat em volta de tudo</h2>
+  <p class="sub">A pergunta de partida não é "que agente vamos criar?". É "quem decide o quê, e como medimos se ficou melhor?". O agente entra depois, como uma peça do processo.</p>
+  <figure style="margin:0 0 26px;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px -30px #000"><img src="assets/banner-grade.jpg" alt="Os seis pilares em cartões: resultado primeiro, workflow determinístico, humano no comando, agentes de fundo, política em código, audit log" loading="lazy" style="width:100%;display:block"></figure>
+  <div class="grid g3">
+    <div class="card"><h3>🧱 Workflow antes de agente</h3><p>Cada uso de LLM é um nó entre outros quatro: contexto, código, condição e formatação. Mesma entrada, mesma saída.</p></div>
+    <div class="card"><h3>✋ Ninguém envia sozinho</h3><p>O workflow só propõe. O e-mail fica na fila até a pessoa ler, editar e aprovar. Tudo vai para o audit log.</p></div>
+    <div class="card"><h3>📏 Regra com número é código</h3><p>O manual de férias vira funções com entrada estrita e 12 testes de política. Mudou um número, um teste quebra.</p></div>
+  </div>
+</div></section>
+
+<section id="pilares"><div class="wrap">
+  <span class="chip">Os 9 pilares</span>
+  <h2>O checklist que o framework implementa</h2>
+  <p class="sub">Cada pilar tem um arquivo e pelo menos um teste. Use a lista para revisar qualquer app de IA da sua empresa, mesmo que não use este código.</p>
+  <div class="grid g3">
+    <div class="card"><div class="num">1</div><h3>Resultado de negócio primeiro</h3><p>Canvas com pessoa usuária, decisão e métrica de sucesso antes de pensar em agente.</p><p><code>templates/canvas-resultado.md</code></p></div>
+    <div class="card"><div class="num">2</div><h3>LLM dentro de workflow</h3><p>Nós contexto → código → condição → LLM → formatação. O modelo é escolhido pela tarefa, não por gosto.</p><p><code>workflow.py</code> · <code>config.py</code></p></div>
+    <div class="card"><div class="num">3</div><h3>Tela chama workflow</h3><p>O botão do painel envia o input para o workflow e o resultado volta na própria tela, como rascunho editável.</p><p><code>painel.html</code> · <code>serve.py</code></p></div>
+    <div class="card"><div class="num">4</div><h3>Humano no comando</h3><p>Toda ação externa passa por revisão, edição e aprovação. Campos sensíveis, como o destinatário, ficam travados.</p><p><code>acoes.py</code></p></div>
+    <div class="card"><div class="num">5</div><h3>Agentes de fundo</h3><p>Observam os dados (meta vencida, 1:1 atrasado, engajamento caindo) e sugerem próximos passos com botão de executar.</p><p>workflow <code>proximos_passos</code></p></div>
+    <div class="card"><div class="num">6</div><h3>Política vira código, não RAG</h3><p>Classifica a pergunta, carrega só a política certa e dá ao agente só as ferramentas dela. Busca fica para pergunta aberta.</p><p><code>policies/ferias.py</code></p></div>
+    <div class="card"><div class="num">7</div><h3>Segurança por workflow</h3><p>Papéis que podem executar, identidade de serviço com escopo mínimo e audit log com hash encadeado.</p><p><code>seguranca.py</code></p></div>
+    <div class="card"><div class="num">8</div><h3>Gatilhos além do clique</h3><p>Manual, agendado (segunda 08:00) e por evento (e-mail recebido), declarados no próprio JSON do workflow.</p><p><code>gatilhos.py</code></p></div>
+    <div class="card"><div class="num">9</div><h3>Saída visual</h3><p>Relatório em HTML e PDF, gerado por workflow, no lugar de uma parede de texto.</p><p><code>relatorio.py</code></p></div>
+  </div>
+</div></section>
+
+<section id="fluxo"><div class="wrap">
+  <span class="chip">Como funciona</span>
+  <h2>Um caminho fixo, com o LLM numa caixa só</h2>
+  <p class="sub">O motor confere quem pediu, assume a identidade do workflow, valida a entrada e roda os nós em ordem. A saída é JSON validado. Ações viram propostas. Uma linha de auditoria por execução.</p>
+  <div class="flow">
+    <span>Gatilho</span><span class="arr">→</span>
+    <span>Papel pode executar?</span><span class="arr">→</span>
+    <span>Contexto</span><span class="arr">→</span>
+    <span>Código</span><span class="arr">→</span>
+    <span>Condição</span><span class="arr">→</span>
+    <span>LLM</span><span class="arr">→</span>
+    <span>Formatação + esquema</span><span class="arr">→</span>
+    <span>Proposta na fila</span><span class="arr">→</span>
+    <span>Pessoa aprova</span><span class="arr">→</span>
+    <span>Executa + audit</span>
+  </div>
+  <div class="grid g2" style="margin-top:28px">
+    <div class="card"><h3>Assistente de RH, nó a nó</h3><p>perfil (contexto, identidade <code>svc-rh</code>) → categoria (LLM classifica: férias, licença parental ou outro) → condição → dados (código tira da pergunta os números) → agente (LLM escolhe entre as ferramentas SÓ daquela política) → explicação (código) → formatação.</p></div>
+    <div class="card"><h3>Follow-up de metas, nó a nó</h3><p>equipe (contexto) → metas vencidas (código) → tem pendência? (condição) → rascunhos (LLM redige um por pessoa) → formatação valida e propõe 6 e-mails. Nenhum sai antes da aprovação.</p></div>
+  </div>
+</div></section>
+
+<section id="pre"><div class="wrap">
+  <span class="chip">Pré-requisitos</span>
+  <h2>Só o Python</h2>
+  <p class="sub">Nada para instalar com pip. Nenhuma chave de API. Os testes bloqueiam a rede de propósito.</p>
+  <div class="grid g3">
+    <div class="card"><h3>Python 3.10 ou mais novo</h3><p>Linux, Mac ou Windows.</p><pre><span class="c"># conferir</span>
+<span class="k">python3</span> --version</pre></div>
+    <div class="card"><h3>git</h3><p>Para baixar o repositório.</p><pre><span class="k">git</span> --version</pre></div>
+    <div class="card"><h3>Ollama (opcional)</h3><p>Só se quiser trocar o LLM fake por um modelo local.</p><pre><span class="c"># opcional</span>
+<span class="k">ollama</span> list</pre></div>
+  </div>
+</div></section>
+
+<section id="guia"><div class="wrap">
+  <span class="chip">Guia de uso · passo a passo</span>
+  <h2>Do clone à sua primeira app</h2>
+  <p class="sub">Os quatro primeiros passos rodam o exemplo. Os outros mostram o que você troca para a sua empresa. O roteiro completo, com checklist de implantação, está em <a href="https://github.com/inematds/agentic-app/blob/main/docs/PASSO-A-PASSO.md">docs/PASSO-A-PASSO.md</a>.</p>
+
+  <div class="step"><div class="b">1</div><div>
+    <h3>Baixe e rode os testes</h3>
+    <p>47 checks, sem rede. A última linha tem que ser OK.</p>
+<pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
+<span class="k">cd</span> agentic-app
+<span class="k">bash</span> tests/run.sh          <span class="c"># 47 checks, 0 falhas → OK</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">2</div><div>
+    <h3>Rode a demo no terminal</h3>
+    <p>Executa os 5 workflows: RBAC negando, rascunhos, aprovação com edição, assistente de RH, agendado de segunda 08:00, evento de e-mail recebido e relatório.</p>
+<pre><span class="k">python3</span> -m agentic_app.demo
+<span class="c"># gera saida/relatorio.html, saida/relatorio.pdf, saida/audit.jsonl</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">3</div><div>
+    <h3>Abra o painel</h3>
+    <p>Troque de pessoa no topo (gestora, RH, colaborador) e veja o que cada papel pode fazer.</p>
+<pre><span class="k">python3</span> -m agentic_app.serve --porta 8765
+<span class="c"># http://127.0.0.1:8765  (só na sua máquina)</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">4</div><div>
+    <h3>Prove que a política é código</h3>
+    <p>O script muda quatro números do manual, um de cada vez, e confere que algum teste quebra.</p>
+<pre><span class="k">bash</span> tests/prova_mutacao.sh  <span class="c"># 4× "quebrou (bom)" → OK</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">5</div><div>
+    <h3>Preencha o canvas de resultado</h3>
+    <p>Pessoa usuária, decisão, custo de hoje e um número de sucesso com prazo. Sem métrica, não comece.</p>
+<pre><span class="k">cp</span> templates/canvas-resultado.md docs/meu-canvas.md</pre>
+  </div></div>
+
+  <div class="step"><div class="b">6</div><div>
+    <h3>Codifique sua política com teste</h3>
+    <p>Uma constante por número do documento, um teste por limite (o valor exato e o vizinho).</p>
+<pre><span class="k">cp</span> templates/politica_modelo.py agentic_app/policies/reembolso.py
+<span class="k">cp</span> templates/test_politica_modelo.py tests/test_reembolso.py</pre>
+  </div></div>
+
+  <div class="step"><div class="b">7</div><div>
+    <h3>Desenhe o workflow em JSON</h3>
+    <p>Contexto → código → condição → LLM → formatação. A ação externa vai em <code>propor_acao</code>, com os campos editáveis.</p>
+<pre><span class="k">cp</span> templates/workflow-modelo.json agentic_app/apps/coaching/workflows/meu_workflow.json
+<span class="k">python3</span> -c <span class="s">"from agentic_app.workflow import carregar_spec as c; c('agentic_app/apps/coaching/workflows/meu_workflow.json')"</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">8</div><div>
+    <h3>Defina papéis, identidades e aprovadores</h3>
+    <p>Quem executa cada workflow, com qual conta de serviço ele age e quem aprova o que ele propõe.</p>
+<pre><span class="k">cat</span> templates/permissoes.json</pre>
+  </div></div>
+
+  <div class="step"><div class="b">9</div><div>
+    <h3>Troque o LLM quando o processo estiver pronto</h3>
+    <p>O fake fica nos testes. Para um modelo local, uma variável. Para outro provedor, uma subclasse de <code>LLM</code>.</p>
+<pre><span class="k">AGENTIC_LLM=ollama</span> python3 -m agentic_app.demo</pre>
+  </div></div>
+</div></section>
+
+<section id="exemplos"><div class="wrap">
+  <span class="chip">App de referência</span>
+  <h2>Coaching de gestor: 12 pessoas, 5 workflows</h2>
+  <p class="sub">Dados fictícios. A gestora vê a equipe, gera follow-ups para quem não bateu a meta, recebe sugestões do agente de fundo e responde dúvidas de férias com a política codificada.</p>
+  <div class="ex">
+    <figure><img src="assets/painel.jpg" alt="Painel do app de coaching com a tabela de engajamento da equipe" loading="lazy"><figcaption>Painel: a situação de cada pessoa tem rótulo e cor; rascunhos e sugestões aparecem na própria tela.</figcaption></figure>
+    <figure><img src="assets/relatorio.jpg" alt="Relatório visual da equipe com indicadores e barras de progresso" loading="lazy"><figcaption>Relatório gerado pelo workflow <code>relatorio_equipe</code>: 12 pessoas, 16 metas, 7 vencidas. Também sai em PDF.</figcaption></figure>
+  </div>
+  <div class="tabela" style="margin-top:26px"><table>
+    <tr><th>Componente</th><th>Workflow</th><th>Nós</th><th>Quem executa</th><th>Age como</th></tr>
+    <tr><td>Follow-up de metas</td><td><code>followup_metas</code></td><td>6</td><td><code>gestor, sistema</code></td><td><code>svc-coaching</code></td></tr>
+    <tr><td>Próximos passos</td><td><code>proximos_passos</code></td><td>6</td><td><code>sistema, gestor</code></td><td><code>svc-coaching</code></td></tr>
+    <tr><td>Convite para 1:1</td><td><code>convite_1a1</code></td><td>4</td><td><code>gestor</code></td><td><code>svc-coaching</code></td></tr>
+    <tr><td>Assistente de RH</td><td><code>assistente_rh</code></td><td>10</td><td><code>colaborador, gestor, rh, sistema</code></td><td><code>svc-rh</code></td></tr>
+    <tr><td>Relatório</td><td><code>relatorio_equipe</code></td><td>4</td><td><code>gestor, rh, sistema</code></td><td><code>svc-coaching</code></td></tr>
+  </table></div>
+</div></section>
+
+<section id="videos" class="videos"><div class="wrap">
+  <span class="chip">Vídeos</span>
+  <h2>Veja o framework funcionando</h2>
+  <p class="sub">Os vídeos de explicação vão aparecer aqui.</p>
+  <!-- VIDEOS: troque o bloco .vazio por cartões assim (um por vídeo):
+  <div class="grid g2">
+    <div class="card"><h3>Título do vídeo</h3><p>Uma frase sobre o vídeo.</p><p><a href="URL-DO-PLAYER-OU-YOUTUBE" target="_blank" rel="noopener">Assistir ao vídeo</a></p></div>
+  </div>
+  -->
+  <div class="vazio">Em breve.</div>
+</div></section>
+
+<section id="encaixe"><div class="wrap">
+  <span class="chip">Onde se encaixa</span>
+  <h2>A camada de app e workflows de negócio</h2>
+  <p class="sub">O agentic-app não substitui os outros kits INEMA. Ele fica em cima deles.</p>
+  <div class="grid g3">
+    <div class="card"><h3>agentic-starter</h3><p>O agente da empresa em arquivos: identidade, skills, regras e medição. Responde <b>quem</b> é o agente e como ele trabalha aqui.</p><p><a href="https://inematds.github.io/agentic-starter/guia/" target="_blank" rel="noopener">Abrir o guia</a></p></div>
+    <div class="card"><h3>inema-agent-runtime</h3><p>Como os agentes descobrem, conectam e usam as ferramentas que você já tem. Responde <b>por onde</b> o agente chega nas ferramentas.</p><p><a href="https://inematds.github.io/inema-agent-runtime/guia/" target="_blank" rel="noopener">Abrir o guia</a></p></div>
+    <div class="card"><h3>agentic-app</h3><p>A aplicação que a pessoa de negócio usa: tela, workflow fixo, política em código, aprovação e auditoria. Responde <b>que resultado</b> a empresa ganha.</p><p><a href="https://github.com/inematds/agentic-app" target="_blank" rel="noopener">Ver o código</a></p></div>
+  </div>
+</div></section>
+
+<section id="roadmap"><div class="wrap">
+  <span class="chip">Roadmap</span>
+  <h2>O que já existe e o que vem depois</h2>
+  <p class="sub">A versão 1.0.0 é o núcleo completo com um app de referência.</p>
+  <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Núcleo + Coaching de gestor</strong><span>Motor com 5 tipos de nó, FakeLLM e Ollama local, fila de aprovação, papéis e identidades, audit com hash, 3 tipos de gatilho, política de férias e licença, relatório HTML/PDF, painel web, 47 checks.</span></div></div>
+  <div class="phase"><div class="tag">Próximo</div><div class="d"><strong>Mais apps de referência</strong><span>Outros processos usando o mesmo motor, cada um com o seu canvas, suas políticas e seus testes.</span></div></div>
+  <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Conectores de produção</strong><span>Exemplos de executor SMTP, login corporativo no painel e leitura de banco no nó de contexto.</span></div></div>
+</div></section>
+
+<footer>
+  <div class="wrap">
+    <div class="pill">Python 3</div><div class="pill">só biblioteca padrão</div><div class="pill">MIT</div>
+    <p style="margin-top:18px">agentic-app · dados e manual de RH do exemplo são fictícios ·
+      <a href="https://github.com/inematds/agentic-app">inematds/agentic-app</a> ·
+      <a href="https://inema.club">INEMA.CLUB</a></p>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var KEY='agentic-app-theme';
+    var b=document.body, t=document.getElementById('themeToggle');
+    try { if(localStorage.getItem(KEY)==='light'){ b.classList.add('light'); t.textContent='☀️'; } } catch(e) {}
+    t.addEventListener('click',function(){
+      var light=b.classList.toggle('light');
+      t.textContent=light?'☀️':'🌙';
+      try { localStorage.setItem(KEY, light?'light':'dark'); } catch(e) {}
+    });
+  })();
+</script>
+</body>
+</html>

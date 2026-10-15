@@ -1,0 +1,21 @@
+{
+  "_como_usar": "Matriz de permissões. Uma linha por workflow: quem executa, com qual identidade ele age, quem aprova as ações que ele propõe. Copie os valores para 'seguranca' de cada workflow e para 'aprovadores'/'identidades' do app.",
+  "papeis": {
+    "gestor": "lidera pessoas; vê e age sobre a própria equipe",
+    "rh": "time de pessoas; vê perfis e políticas",
+    "colaborador": "vê só o próprio perfil",
+    "sistema": "agendador e eventos; nunca aprova nada"
+  },
+  "identidades": {
+    "svc-coaching": {"escopos": ["equipe.ler"], "nota": "não lê dados de RH"},
+    "svc-rh": {"escopos": ["rh.perfil.ler", "rh.faq.ler"], "nota": "não lê metas da equipe"}
+  },
+  "workflows": [
+    {"workflow": "followup_metas", "executar": ["gestor", "sistema"], "identidade": "svc-coaching", "aprova_acoes": ["gestor", "rh"]},
+    {"workflow": "convite_1a1", "executar": ["gestor"], "identidade": "svc-coaching", "aprova_acoes": ["gestor"]},
+    {"workflow": "proximos_passos", "executar": ["sistema", "gestor"], "identidade": "svc-coaching", "aprova_acoes": []},
+    {"workflow": "assistente_rh", "executar": ["colaborador", "gestor", "rh", "sistema"], "identidade": "svc-rh", "aprova_acoes": ["gestor", "rh"]},
+    {"workflow": "relatorio_equipe", "executar": ["gestor", "rh", "sistema"], "identidade": "svc-coaching", "aprova_acoes": []}
+  ],
+  "aprovadores": {"enviar_email": ["gestor", "rh"]}
+}

@@ -1,0 +1,27 @@
+{
+  "id": "convite_1a1",
+  "versao": 1,
+  "titulo": "Convite para conversa individual (1:1)",
+  "resultado_de_negocio": "Ninguém da equipe fica mais de 30 dias sem uma conversa individual.",
+  "seguranca": {"executar": ["gestor"], "identidade": "svc-coaching"},
+  "gatilhos": [{"tipo": "manual", "componente": "painel_sugestoes"}],
+  "entrada": {
+    "type": "object", "required": ["liderado_id"],
+    "properties": {"liderado_id": {"type": "string"}, "motivo": {"type": "string"}},
+    "additionalProperties": false
+  },
+  "nos": [
+    {"id": "ctx", "tipo": "contexto", "carregar": "equipe"},
+    {"id": "pessoa", "tipo": "codigo", "funcao": "pegar_liderado", "args": {"equipe": "$ctx", "liderado_id": "$entrada.liderado_id"}},
+    {"id": "corpo", "tipo": "llm", "modo": "redigir", "tarefa": "redacao",
+     "dados": {"primeiro_nome": "$pessoa.primeiro_nome", "gestor": "$ctx.gestor.nome", "dias": "$pessoa.dias_sem_1a1"},
+     "modelo_texto": "Olá, {primeiro_nome}!\n\nFaz {dias} dias que não temos nossa conversa individual. Quero ouvir como você está e o que posso fazer para ajudar. Você tem 30 minutos na quinta ou na sexta?\n\nUm abraço,\n{gestor}"},
+    {"id": "saida", "tipo": "formatacao",
+     "saida": {"para": "$pessoa.email", "nome": "$pessoa.nome", "assunto": "Vamos conversar esta semana?", "corpo": "$corpo"},
+     "esquema": {"type": "object", "required": ["para", "assunto", "corpo"],
+                 "properties": {"corpo": {"type": "string", "minLength": 40, "maxLength": 1200}}},
+     "propor_acao": {"tipo": "enviar_email",
+                     "payload": {"para": "$saida.para", "assunto": "$saida.assunto", "corpo": "$saida.corpo"},
+                     "editaveis": ["assunto", "corpo"]}}
+  ]
+}

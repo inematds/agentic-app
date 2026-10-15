@@ -1,0 +1,25 @@
+{
+  "id": "relatorio_equipe",
+  "versao": 1,
+  "titulo": "Relatório visual da equipe (HTML + PDF)",
+  "resultado_de_negocio": "Uma página para levar à reunião, no lugar de uma parede de texto.",
+  "seguranca": {"executar": ["gestor", "rh", "sistema"], "identidade": "svc-coaching"},
+  "gatilhos": [
+    {"tipo": "manual", "componente": "botao_relatorio"},
+    {"tipo": "agendado", "dia_semana": "sex", "hora": "17:00", "usuario": "sistema", "entrada": {}}
+  ],
+  "entrada": {"type": "object", "additionalProperties": false},
+  "nos": [
+    {"id": "ctx", "tipo": "contexto", "carregar": "equipe"},
+    {"id": "numeros", "tipo": "codigo", "funcao": "agregar_equipe", "args": {"equipe": "$ctx"}},
+    {"id": "resumo", "tipo": "llm", "modo": "redigir", "tarefa": "resumo", "dados": "$numeros",
+     "modelo_texto": "A equipe tem {total} pessoas e {metas_total} metas de desenvolvimento. {metas_concluidas} estão concluídas e {metas_atrasadas} venceram sem concluir, com {pessoas_atrasadas} pessoas envolvidas. O engajamento médio é {engajamento_medio} e {pessoas_sem_1a1} pessoas estão há mais de 30 dias sem conversa individual."},
+    {"id": "saida", "tipo": "formatacao",
+     "saida": {"titulo": "Painel da equipe", "gestor": "$ctx.gestor.nome", "data": "$ctx.data_referencia",
+               "resumo": "$resumo", "numeros": "$numeros"},
+     "esquema": {"type": "object", "required": ["titulo", "resumo", "numeros"],
+                 "properties": {"resumo": {"type": "string", "minLength": 40, "maxLength": 800},
+                                "numeros": {"type": "object", "required": ["total", "pessoas"]}}},
+     "artefato": {"tipo": "relatorio", "html": "relatorio.html", "pdf": "relatorio.pdf"}}
+  ]
+}

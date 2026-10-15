@@ -1,0 +1,9 @@
+{
+  "_aviso": "Perguntas abertas, NÃO críticas. Aqui busca por texto (tipo RAG) é aceitável. Regras com número moram em policies/.",
+  "itens": [
+    {"pergunta": "Como funciona o home office?", "resposta": "Combine os dias com a sua liderança; o padrão da Empresa Exemplo é 2 dias por semana no escritório.", "tags": ["home", "office", "remoto", "escritorio"]},
+    {"pergunta": "Onde vejo meu holerite?", "resposta": "No portal de pessoas, menu Documentos > Holerites.", "tags": ["holerite", "salario", "contracheque", "pagamento"]},
+    {"pergunta": "Como peço reembolso de curso?", "resposta": "Abra um pedido no portal de pessoas com o certificado e a nota fiscal; o RH responde em até 5 dias úteis.", "tags": ["reembolso", "curso", "treinamento", "certificado"]},
+    {"pergunta": "Qual é o horário de atendimento do RH?", "resposta": "De segunda a sexta, das 9h às 17h, pelo canal de pessoas.", "tags": ["horario", "atendimento", "rh", "contato"]}
+  ]
+}
