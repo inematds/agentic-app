@@ -268,9 +268,9 @@
 
   <div class="step"><div class="b">7</div><div>
     <h3>Diseña el workflow en JSON</h3>
-    <p>Contexto → código → condición → LLM → formato. La acción externa va en <code>propor_acao</code>, con los campos editables.</p>
-<pre><span class="k">cp</span> templates/workflow-modelo.json agentic_app/apps/coaching/workflows/meu_workflow.json
-<span class="k">python3</span> -c <span class="s">"from agentic_app.workflow import carregar_spec as c; c('agentic_app/apps/coaching/workflows/meu_workflow.json')"</span></pre>
+    <p>Contexto → código → condición → LLM → formato. La acción externa va en <code>propor_acao</code>, con los campos editables. Muévelo a la carpeta <code>workflows/</code> de tu app solo después de registrar el contexto y la función que usa.</p>
+<pre><span class="k">cp</span> templates/workflow-modelo.json meu_workflow.json
+<span class="k">python3</span> -c <span class="s">"from agentic_app.workflow import carregar_spec as c; c('meu_workflow.json')"</span></pre>
   </div></div>
 
   <div class="step"><div class="b">8</div><div>

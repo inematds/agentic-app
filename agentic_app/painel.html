@@ -6,7 +6,7 @@
 <title>Coaching de gestor · agentic-app</title>
 <style>
 :root{--bg:#0c0c10;--bg2:#14141b;--card:#16161e;--line:#272730;--txt:#e9e9ee;--mut:#9a9aa6;--amb:#FACC15;
---ok:#4ade80;--warn:#f59e0b;--bad:#f87171;--on:#1a1206}
+--ok:#4ade80;--warn:#f59e0b;--bad:#f87171;--on:#1a1206;--fill:#FACC15}
 @media (prefers-color-scheme: light){:root{--bg:#f6f7f9;--bg2:#eceef2;--card:#fff;--line:#e1e3ea;--txt:#1a1a22;--mut:#5b5b68;
 --amb:#a16207;--ok:#15803d;--warn:#b45309;--bad:#b91c1c}}
 *{box-sizing:border-box}
@@ -18,7 +18,7 @@ section{background:var(--card);border:1px solid var(--line);border-radius:14px;p
 section.largo{grid-column:1/-1}
 h2{font-family:Sora,system-ui;font-size:1.05rem;margin:0 0 4px} .sub{color:var(--mut);font-size:.82rem;margin:0 0 12px}
 button{font:600 .88rem Sora,system-ui;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--txt);padding:.5em .9em;cursor:pointer}
-button.pri{background:var(--amb);color:var(--on);border-color:var(--amb)}
+button.pri{background:var(--fill);color:var(--on);border-color:var(--fill)}
 button:disabled{opacity:.5;cursor:not-allowed}
 select,textarea,input{font:inherit;color:var(--txt);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:.45em .6em;width:100%}
 select{width:auto}
