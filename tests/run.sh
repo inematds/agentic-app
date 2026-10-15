@@ -5,5 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 export PYTHONDONTWRITEBYTECODE=1
 unset AGENTIC_LLM || true
+# bytecode velho pode mascarar mudança de mesmo tamanho no mesmo segundo: limpa sempre
+find . -name __pycache__ -not -path "./.git/*" -prune -exec rm -rf {} +
 python3 tests/rodar.py
 echo OK

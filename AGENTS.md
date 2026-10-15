@@ -27,4 +27,4 @@ uma linha no TOPO da seção Lessons abaixo.
 
 ## Lessons
 
-- (vazio)
+- Mutação de política: limpar `__pycache__` antes de cada rodada (`.pyc` velho mascara troca de mesmo tamanho) e checar a saída dos testes antes de commitar, nunca `testes | tail && git commit`.

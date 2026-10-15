@@ -50,6 +50,13 @@ class TestPedidoDeFerias(unittest.TestCase):
         r = F.validar_pedido_ferias([20, 4], 40)                                    # um < 5
         self.assertIn("F6: nenhum período pode ter menos de 5 dias", r["motivos"])
 
+    def test_f6_periodo_principal_de_14_dias_no_limite(self):
+        self.assertTrue(F.validar_pedido_ferias([14, 7], 40)["aprovado"])
+        r = F.validar_pedido_ferias([13, 7], 40)
+        self.assertEqual(r["motivos"], ["F6: um período precisa ter 14 dias ou mais"])
+        self.assertTrue(F.validar_pedido_ferias([20, 5], 40)["aprovado"])   # 5 é o mínimo
+        self.assertTrue(F.validar_pedido_ferias([10, 10, 14], 40)["aprovado"])  # 3 é o máximo
+
     def test_pedido_entradas_estritas(self):
         with self.assertRaises(TypeError):
             F.validar_pedido_ferias([], 30)

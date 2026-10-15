@@ -164,7 +164,7 @@
   <div class="grid g3">
     <div class="card"><h3>🧱 Workflow antes de agente</h3><p>Cada uso de LLM é um nó entre outros quatro: contexto, código, condição e formatação. Mesma entrada, mesma saída.</p></div>
     <div class="card"><h3>✋ Ninguém envia sozinho</h3><p>O workflow só propõe. O e-mail fica na fila até a pessoa ler, editar e aprovar. Tudo vai para o audit log.</p></div>
-    <div class="card"><h3>📏 Regra com número é código</h3><p>O manual de férias vira funções com entrada estrita e 12 testes de política. Mudou um número, um teste quebra.</p></div>
+    <div class="card"><h3>📏 Regra com número é código</h3><p>O manual de férias vira funções com entrada estrita e 13 testes de política. Mudou um número, um teste quebra.</p></div>
   </div>
 </div></section>
 
@@ -227,10 +227,10 @@
 
   <div class="step"><div class="b">1</div><div>
     <h3>Baixe e rode os testes</h3>
-    <p>47 checks, sem rede. A última linha tem que ser OK.</p>
+    <p>48 checks, sem rede. A última linha tem que ser OK.</p>
 <pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
 <span class="k">cd</span> agentic-app
-<span class="k">bash</span> tests/run.sh          <span class="c"># 47 checks, 0 falhas → OK</span></pre>
+<span class="k">bash</span> tests/run.sh          <span class="c"># 48 checks, 0 falhas → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
@@ -249,8 +249,8 @@
 
   <div class="step"><div class="b">4</div><div>
     <h3>Prove que a política é código</h3>
-    <p>O script muda quatro números do manual, um de cada vez, e confere que algum teste quebra.</p>
-<pre><span class="k">bash</span> tests/prova_mutacao.sh  <span class="c"># 4× "quebrou (bom)" → OK</span></pre>
+    <p>O script muda nove números do manual, um de cada vez, e confere que algum teste quebra.</p>
+<pre><span class="k">bash</span> tests/prova_mutacao.sh  <span class="c"># 9× "quebrou (bom)" → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">5</div><div>
@@ -331,7 +331,7 @@
   <span class="chip">Roadmap</span>
   <h2>O que já existe e o que vem depois</h2>
   <p class="sub">A versão 1.0.0 é o núcleo completo com um app de referência.</p>
-  <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Núcleo + Coaching de gestor</strong><span>Motor com 5 tipos de nó, FakeLLM e Ollama local, fila de aprovação, papéis e identidades, audit com hash, 3 tipos de gatilho, política de férias e licença, relatório HTML/PDF, painel web, 47 checks.</span></div></div>
+  <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Núcleo + Coaching de gestor</strong><span>Motor com 5 tipos de nó, FakeLLM e Ollama local, fila de aprovação, papéis e identidades, audit com hash, 3 tipos de gatilho, política de férias e licença, relatório HTML/PDF, painel web, 48 checks.</span></div></div>
   <div class="phase"><div class="tag">Próximo</div><div class="d"><strong>Mais apps de referência</strong><span>Outros processos usando o mesmo motor, cada um com o seu canvas, suas políticas e seus testes.</span></div></div>
   <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Conectores de produção</strong><span>Exemplos de executor SMTP, login corporativo no painel e leitura de banco no nó de contexto.</span></div></div>
 </div></section>

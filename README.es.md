@@ -17,7 +17,7 @@ Guía completa (landing + paso a paso): **https://inematds.github.io/agentic-app
 ```bash
 git clone https://github.com/inematds/agentic-app
 cd agentic-app
-bash tests/run.sh                 # 47 checks, sin red -> última línea OK
+bash tests/run.sh                 # 48 checks, sin red -> última línea OK
 python3 -m agentic_app.demo       # corre los 5 workflows y genera saida/relatorio.html
 python3 -m agentic_app.serve      # panel en http://127.0.0.1:8765
 ```
@@ -68,7 +68,7 @@ Un quinto workflow, `convite_1a1`, es llamado por las sugerencias del agente de 
 | `templates/` | canvas, modelo de workflow, modelo de política + prueba, matriz de permisos |
 | `docs/PASSO-A-PASSO.md` | del cero a la implementación en una empresa (10 pasos + checklist), en portugués |
 | `docs/ARQUITETURA.md` | cómo encajan las piezas, en portugués |
-| `tests/` | `run.sh` (47 checks sin red) y `prova_mutacao.sh` |
+| `tests/` | `run.sh` (48 checks sin red) y `prova_mutacao.sh` |
 
 ## Dónde encaja
 

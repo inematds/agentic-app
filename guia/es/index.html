@@ -164,7 +164,7 @@
   <div class="grid g3">
     <div class="card"><h3>🧱 Workflow antes que agente</h3><p>Cada uso de LLM es un nodo entre otros cuatro: contexto, código, condición y formato. Misma entrada, misma salida.</p></div>
     <div class="card"><h3>✋ Nadie envía por su cuenta</h3><p>El workflow solo propone. El correo queda en la cola hasta que la persona lo lea, edite y apruebe. Todo va al audit log.</p></div>
-    <div class="card"><h3>📏 Una regla con número es código</h3><p>El manual de vacaciones se vuelve funciones con entrada estricta y 12 pruebas de política. Si cambia un número, una prueba se rompe.</p></div>
+    <div class="card"><h3>📏 Una regla con número es código</h3><p>El manual de vacaciones se vuelve funciones con entrada estricta y 13 pruebas de política. Si cambia un número, una prueba se rompe.</p></div>
   </div>
 </div></section>
 
@@ -227,10 +227,10 @@
 
   <div class="step"><div class="b">1</div><div>
     <h3>Descarga y ejecuta las pruebas</h3>
-    <p>47 checks, sin red. La última línea tiene que ser OK.</p>
+    <p>48 checks, sin red. La última línea tiene que ser OK.</p>
 <pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
 <span class="k">cd</span> agentic-app
-<span class="k">bash</span> tests/run.sh          <span class="c"># 47 checks, 0 fallas → OK</span></pre>
+<span class="k">bash</span> tests/run.sh          <span class="c"># 48 checks, 0 fallas → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
@@ -249,8 +249,8 @@
 
   <div class="step"><div class="b">4</div><div>
     <h3>Comprueba que la política es código</h3>
-    <p>El script cambia cuatro números del manual, uno a la vez, y verifica que alguna prueba se rompa.</p>
-<pre><span class="k">bash</span> tests/prova_mutacao.sh  <span class="c"># 4× "se rompió (bien)" → OK</span></pre>
+    <p>El script cambia nueve números del manual, uno a la vez, y verifica que alguna prueba se rompa.</p>
+<pre><span class="k">bash</span> tests/prova_mutacao.sh  <span class="c"># 9× "quebrou (bom)" → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">5</div><div>
@@ -331,7 +331,7 @@
   <span class="chip">Roadmap</span>
   <h2>Lo que ya existe y lo que viene después</h2>
   <p class="sub">La versión 1.0.0 es el núcleo completo con una app de referencia.</p>
-  <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Núcleo + Coaching para gerentes</strong><span>Motor con 5 tipos de nodo, FakeLLM y Ollama local, cola de aprobación, roles e identidades, audit con hash, 3 tipos de disparador, política de vacaciones y licencia, informe HTML/PDF, panel web, 47 checks.</span></div></div>
+  <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Núcleo + Coaching para gerentes</strong><span>Motor con 5 tipos de nodo, FakeLLM y Ollama local, cola de aprobación, roles e identidades, audit con hash, 3 tipos de disparador, política de vacaciones y licencia, informe HTML/PDF, panel web, 48 checks.</span></div></div>
   <div class="phase"><div class="tag">Próximo</div><div class="d"><strong>Más apps de referencia</strong><span>Otros procesos usando el mismo motor, cada uno con su canvas, sus políticas y sus pruebas.</span></div></div>
   <div class="phase"><div class="tag">Después</div><div class="d"><strong>Conectores de producción</strong><span>Ejemplos de ejecutor SMTP, inicio de sesión corporativo en el panel y lectura de base de datos en el nodo de contexto.</span></div></div>
 </div></section>

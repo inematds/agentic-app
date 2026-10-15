@@ -164,7 +164,7 @@
   <div class="grid g3">
     <div class="card"><h3>🧱 Workflow before agent</h3><p>Each LLM use is one node among four others: context, code, condition and formatting. Same input, same output.</p></div>
     <div class="card"><h3>✋ Nothing sends itself</h3><p>The workflow only proposes. The email waits in the queue until the person reads, edits and approves it. Everything goes to the audit log.</p></div>
-    <div class="card"><h3>📏 A rule with a number is code</h3><p>The vacation manual becomes functions with strict input and 12 policy tests. Change one number, a test breaks.</p></div>
+    <div class="card"><h3>📏 A rule with a number is code</h3><p>The vacation manual becomes functions with strict input and 13 policy tests. Change one number, a test breaks.</p></div>
   </div>
 </div></section>
 
@@ -227,10 +227,10 @@
 
   <div class="step"><div class="b">1</div><div>
     <h3>Download and run the tests</h3>
-    <p>47 checks, no network. The last line must be OK.</p>
+    <p>48 checks, no network. The last line must be OK.</p>
 <pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
 <span class="k">cd</span> agentic-app
-<span class="k">bash</span> tests/run.sh          <span class="c"># 47 checks, 0 failures → OK</span></pre>
+<span class="k">bash</span> tests/run.sh          <span class="c"># 48 checks, 0 failures → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
@@ -249,8 +249,8 @@
 
   <div class="step"><div class="b">4</div><div>
     <h3>Prove that policy is code</h3>
-    <p>The script changes four numbers in the manual, one at a time, and checks that some test breaks.</p>
-<pre><span class="k">bash</span> tests/prova_mutacao.sh  <span class="c"># 4× "quebrou (bom)" → OK</span></pre>
+    <p>The script changes nine numbers in the manual, one at a time, and checks that some test breaks.</p>
+<pre><span class="k">bash</span> tests/prova_mutacao.sh  <span class="c"># 9× "quebrou (bom)" → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">5</div><div>
@@ -331,7 +331,7 @@
   <span class="chip">Roadmap</span>
   <h2>What exists and what comes next</h2>
   <p class="sub">Version 1.0.0 is the complete core with one reference app.</p>
-  <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Core + Manager coaching</strong><span>Engine with 5 node types, FakeLLM and local Ollama, approval queue, roles and identities, hashed audit, 3 trigger types, vacation and leave policy, HTML/PDF report, web panel, 47 checks.</span></div></div>
+  <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Core + Manager coaching</strong><span>Engine with 5 node types, FakeLLM and local Ollama, approval queue, roles and identities, hashed audit, 3 trigger types, vacation and leave policy, HTML/PDF report, web panel, 48 checks.</span></div></div>
   <div class="phase"><div class="tag">Next</div><div class="d"><strong>More reference apps</strong><span>Other processes using the same engine, each with its own canvas, policies and tests.</span></div></div>
   <div class="phase"><div class="tag">Later</div><div class="d"><strong>Production connectors</strong><span>Examples of an SMTP executor, corporate login on the panel and database reads in the context node.</span></div></div>
 </div></section>
