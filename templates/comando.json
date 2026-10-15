@@ -1,0 +1,10 @@
+{
+  "_como_usar": "Centro de Comando (Agent Control Tower + Mission Control). 1) 'acesso': papéis que abrem a tela (igual a 'executar' do workflow centro_comando). 2) 'acoes.controlar_agentes': papéis que pausam, retomam, rodam agora, reexecutam e escalam — nunca aprovam. 3) 'executar_como': usuário que refaz execuções de entrada vazia (o agendador). 4) 'sla_aprovacao_horas': idade a partir da qual uma aprovação vira alerta. 5) 'ignorar_workflows': leituras (painéis) que ficam fora do feed e dos problemas.",
+  "acesso": ["operacao", "admin", "gestor", "diretoria"],
+  "acoes": {"controlar_agentes": ["operacao", "admin"]},
+  "executar_como": "sistema",
+  "sla_aprovacao_horas": 24,
+  "eventos_no_feed": 15,
+  "problemas_max": 10,
+  "ignorar_workflows": ["centro_comando", "painel_executivo", "painel_tendencias"]
+}

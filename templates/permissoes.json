@@ -7,13 +7,15 @@
     "sistema": "agendador e eventos; nunca aprova nada",
     "diretoria": "patrocina o app; vê o painel executivo (resultado, controle, custo); não executa workflows da equipe",
     "admin": "administra o app; também vê o painel executivo e o de tendências",
-    "estrategia": "área estratégica; vê o painel de tendências (para onde os números vão), não o executivo"
+    "estrategia": "área estratégica; vê o painel de tendências (para onde os números vão), não o executivo",
+    "operacao": "opera os agentes no Centro de Comando: pausa, retoma, roda agora, reexecuta e escala; nunca aprova nem envia"
   },
   "identidades": {
     "svc-coaching": {"escopos": ["equipe.ler"], "nota": "não lê dados de RH"},
     "svc-rh": {"escopos": ["rh.perfil.ler", "rh.faq.ler"], "nota": "não lê metas da equipe"},
     "svc-diretoria": {"escopos": ["equipe.ler", "audit.ler", "aprovacoes.ler"], "nota": "só leitura: números da equipe, audit e fila"},
-    "svc-estrategia": {"escopos": ["equipe.ler", "historico.ler"], "nota": "só leitura: equipe e histórico semanal"}
+    "svc-estrategia": {"escopos": ["equipe.ler", "historico.ler"], "nota": "só leitura: equipe e histórico semanal"},
+    "svc-comando": {"escopos": ["equipe.ler", "audit.ler", "aprovacoes.ler", "comando.ler"], "nota": "só leitura: equipe, audit, fila e estado de pausas"}
   },
   "workflows": [
     {"workflow": "followup_metas", "executar": ["gestor", "sistema"], "identidade": "svc-coaching", "aprova_acoes": ["gestor", "rh"]},
@@ -23,7 +25,9 @@
     {"workflow": "relatorio_equipe", "executar": ["gestor", "rh", "sistema"], "identidade": "svc-coaching", "aprova_acoes": []},
     {"workflow": "painel_executivo", "executar": ["diretoria", "admin"], "identidade": "svc-diretoria", "aprova_acoes": []},
     {"workflow": "painel_tendencias", "executar": ["estrategia", "diretoria", "admin"], "identidade": "svc-estrategia", "aprova_acoes": []},
-    {"workflow": "snapshot_indicadores", "executar": ["sistema", "diretoria", "admin"], "identidade": "svc-diretoria", "aprova_acoes": []}
+    {"workflow": "snapshot_indicadores", "executar": ["sistema", "diretoria", "admin"], "identidade": "svc-diretoria", "aprova_acoes": []},
+    {"workflow": "centro_comando", "executar": ["operacao", "admin", "gestor", "diretoria"], "identidade": "svc-comando", "aprova_acoes": []}
   ],
-  "aprovadores": {"enviar_email": ["gestor", "rh"]}
+  "aprovadores": {"enviar_email": ["gestor", "rh"]},
+  "controle_de_agentes": ["operacao", "admin"]
 }

@@ -6,13 +6,15 @@
     {"id": "bruno", "nome": "Bruno Tavares", "papeis": ["colaborador"]},
     {"id": "dora", "nome": "Dora Lima", "papeis": ["diretoria"]},
     {"id": "estela", "nome": "Estela Campos", "papeis": ["estrategia"]},
+    {"id": "otavio", "nome": "Otávio Reis", "papeis": ["operacao"]},
     {"id": "sistema", "nome": "Agendador", "papeis": ["sistema"]}
   ],
   "identidades": [
     {"id": "svc-coaching", "escopos": ["equipe.ler"]},
     {"id": "svc-rh", "escopos": ["rh.perfil.ler", "rh.faq.ler"]},
     {"id": "svc-diretoria", "escopos": ["equipe.ler", "audit.ler", "aprovacoes.ler"]},
-    {"id": "svc-estrategia", "escopos": ["equipe.ler", "historico.ler"]}
+    {"id": "svc-estrategia", "escopos": ["equipe.ler", "historico.ler"]},
+    {"id": "svc-comando", "escopos": ["equipe.ler", "audit.ler", "aprovacoes.ler", "comando.ler"]}
   ],
   "aprovadores": {
     "enviar_email": ["gestor", "rh"]

@@ -3,7 +3,7 @@
   "acesso": ["diretoria", "admin"],
   "metrica_principal": "conversa_7d",
   "regra_principal": "Meta vencida conta como 'com conversa' se a pessoa teve 1:1 há no máximo 7 dias OU recebeu e-mail aprovado e enviado pelos workflows followup_metas ou convite_1a1.",
-  "ignorar_workflows": ["painel_executivo", "painel_tendencias", "snapshot_indicadores"],
+  "ignorar_workflows": ["painel_executivo", "painel_tendencias", "snapshot_indicadores", "centro_comando"],
   "regra_conversa": {"dias": 7, "workflows": ["followup_metas", "convite_1a1"]},
   "metricas": [
     {"id": "conversa_7d", "nome": "Metas vencidas com conversa em até 7 dias", "unidade": "%", "linha_base": 30, "meta": 90, "sentido": "maior"},

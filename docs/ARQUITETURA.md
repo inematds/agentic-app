@@ -55,6 +55,7 @@ marcadas como `critica: false`.
 | `svc-rh` | `rh.perfil.ler`, `rh.faq.ler` | assistente_rh |
 | `svc-diretoria` | `equipe.ler`, `audit.ler`, `aprovacoes.ler` (só leitura) | painel_executivo, snapshot_indicadores |
 | `svc-estrategia` | `equipe.ler`, `historico.ler` (só leitura) | painel_tendencias |
+| `svc-comando` | `equipe.ler`, `audit.ler`, `aprovacoes.ler`, `comando.ler` (só leitura) | centro_comando |
 
 O audit grava as duas coisas: **quem pediu** (`usuario`, `papeis`) e **como o workflow agiu** (`identidade`).
 
@@ -70,6 +71,7 @@ O audit grava as duas coisas: **quem pediu** (`usuario`, `papeis`) e **como o wo
 | `executivo.html`, `executivo.pdf` | saída do `painel_executivo` (servida só pela rota `/executivo`, com RBAC) |
 | `historico.jsonl` | um snapshot por semana (chave = segunda-feira), gravado pelo `snapshot_indicadores` |
 | `tendencias.html`, `tendencias.pdf` | saída do `painel_tendencias` (servida só pela rota `/tendencias`, com RBAC) |
+| `comando.json` | workflows pausados (quem, quando, motivo) e aprovações escaladas, do Centro de Comando |
 
 ## Painel executivo (1.1.0)
 
@@ -124,6 +126,34 @@ Regras (todas em `tendencias.py`, testadas):
   pessoa: vale 100 ÷ (pessoas com meta vencida) pontos, teto 100%; depois segue o ritmo de hoje.
 - **Narrativa**: o nó LLM recebe frases prontas com os números; trocar o LLM não muda nenhum número (teste
   `test_llm_so_costura_nunca_muda_numero`).
+
+## Centro de Comando (1.3.0)
+
+```
+ audit.jsonl ─┐  aprovacoes.json ─┐  comando.json (pausas, escaladas) ─┐  dados do app ─┐
+              ▼                   ▼                                    ▼                ▼
+ centro_comando: contextos registros_operacao + aprovacoes + estado_comando (comando.ler) + equipe
+                 → código centro_de_comando → comando.calcular(...)  (valida comando.ESQUEMA)
+                 → aba Agentes (Agent Control Tower) + aba Negócio (Mission Control) ; rota /comando
+ POST /api/comando/{pausar|retomar|rodar|reexecutar|escalar}/<alvo>  → Controle (papel controlar_agentes) + audit
+```
+
+- **Pausa** entra no motor: `Motor.executar` checa `motor.pausado(workflow)` logo depois do RBAC. Pausado → linha
+  `workflow.executado` com `status="pausado"` e `WorkflowPausado` (HTTP 409). `Gatilhos.tick` e `emitir` pulam o
+  pausado e seguem com os outros. Não conta como erro no executivo.
+- **Semáforo** por workflow: `pausado` · `vermelho` (última execução real com erro) · `amarelo` (erro no histórico
+  ou aprovação dele fora do SLA) · `verde` · `sem_execucao`.
+- **Idade da aprovação** = `agora` − `ts` da execução que propôs (lista `propostas` do audit). `agora` é parâmetro
+  (`?agora=` na rota), então o teste é determinístico. Acima de `sla_aprovacao_horas` → alerta.
+- **Reexecutar** (`comando.reexecucao`): execução `agendado:` usa a entrada e o usuário do próprio gatilho; entrada
+  vazia (`hash_entrada` = hash de `{}`) roda como `executar_como` (o agendador) se o workflow aceita esse papel.
+  O resto não se refaz: o audit guarda só o hash da entrada (pergunta de RH, por exemplo, não fica salva).
+  Execução barrada no escopo também não: refazer repete o bloqueio.
+- **Escalar** grava `comando.escalar` e marca o item; `papeis_aprovadores` não muda. Operação nunca aprova.
+- **Mission Control**: métricas pelo mesmo `metricas_negocio` + `executivo.metrica` do painel executivo (um teste
+  confere que batem); `faltam` = teto(meta% × vencidas) − cobertas; fila de decisão por `fila_de_decisoes` (regra:
+  sinais do agente de fundo + situação na fila de aprovação), ordenada por "sem ação" primeiro.
+- `run_id` continua a numeração do audit quando o app reinicia (antes recomeçava em 0001).
 
 ## Trocar o LLM
 

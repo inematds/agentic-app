@@ -134,6 +134,7 @@
     <a class="sec" href="#guia">Usage guide</a>
     <a class="sec" href="#executivo">Executive</a>
     <a class="sec" href="#tendencias">Trends</a>
+    <a class="sec" href="#comando">Command</a>
     <a class="sec" href="#videos">Videos</a>
     <a class="sec" href="#encaixe">Where it fits</a>
     <span class="lang"><a href="../">PT</a><a class="on" href="./">EN</a><a href="../es/">ES</a></span>
@@ -234,10 +235,10 @@
 
   <div class="step"><div class="b">1</div><div>
     <h3>Download and run the tests</h3>
-    <p>75 checks, no network. The last line must be OK.</p>
+    <p>93 checks, no network. The last line must be OK.</p>
 <pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
 <span class="k">cd</span> agentic-app
-<span class="k">bash</span> tests/run.sh          <span class="c"># 75 checks, 0 failures → OK</span></pre>
+<span class="k">bash</span> tests/run.sh          <span class="c"># 93 checks, 0 failures → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
@@ -349,6 +350,26 @@
   </div>
 </div></section>
 
+<section id="comando"><div class="wrap">
+  <span class="chip">Command Center · 1.3.0</span>
+  <h2>One screen for operators: what the agents are doing now and what is missing for the target</h2>
+  <p class="sub">The executive and trends dashboards are for people who decide. The Command Center is for people who watch live and act on the spot. Two tabs: <strong>Agents</strong> (Agent Control Tower) and <strong>Business</strong> (Mission Control).</p>
+  <div class="exec">
+    <div class="grid">
+      <div class="card"><h3>🛰️ Agent Control Tower</h3><p>Traffic light per workflow (ok, attention, failure, paused), last run, next scheduled run, approval queue by age with a 24 h SLA, failures and denied access, audit chain and latest events.</p></div>
+      <div class="card"><h3>🎛️ Actions on the agents</h3><p>Pause (the trigger stays in the audit and does not run; other scheduled ones keep going), resume, run now, re-run and escalate a stuck approval. Only the <code>operacao</code> role and admin. Operations never approves or sends.</p></div>
+      <div class="card"><h3>🎯 Mission Control</h3><p>The canvas metric against its target and how many conversations are missing (demo: 42.9%, 4 missing). Decision queue: who is at risk, where each case stands and the next action, with buttons to trigger the agent, approve or reject.</p></div>
+      <div class="card"><h3>🔒 Every click with your own role</h3><p>A button you cannot use shows up disabled with the reason, and the server checks again. Every action and every denial goes to the audit. Re-run only redoes what does not require storing the person's input.</p>
+<pre><span class="k">python3</span> -m agentic_app.demo   <span class="c"># section 12: pause, escalate, dashboard</span>
+<span class="c"># http://127.0.0.1:8765/comando?usuario=otavio</span></pre></div>
+    </div>
+    <div style="display:grid;gap:14px">
+      <figure><img src="../assets/comando-agentes.jpg" alt="Command Center Agents tab with a traffic light per workflow, next scheduled run and pause, run now and re-run buttons" loading="lazy"><figcaption>Agents tab (real demo screenshot): 6 operational workflows in green, next runs and per-workflow actions.</figcaption></figure>
+      <figure><img src="../assets/comando-negocio.jpg" alt="Command Center Business tab with the canvas metric, what is missing for the target and the decision queue per person" loading="lazy"><figcaption>Business tab: 42.9% against a 90% target, 4 conversations missing, and the queue of who needs action.</figcaption></figure>
+    </div>
+  </div>
+</div></section>
+
 <section id="videos" class="videos"><div class="wrap">
   <span class="chip">Videos</span>
   <h2>See the framework in action</h2>
@@ -375,10 +396,11 @@
 <section id="roadmap"><div class="wrap">
   <span class="chip">Roadmap</span>
   <h2>What exists and what comes next</h2>
-  <p class="sub">Version 1.0.0 is the complete core with one reference app. 1.1.0 adds the executive dashboard and 1.2.0 the trends dashboard.</p>
+  <p class="sub">Version 1.0.0 is the complete core with one reference app. 1.1.0 adds the executive dashboard 1.2.0 the trends dashboard and 1.3.0 the Command Center.</p>
   <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Core + Manager coaching</strong><span>Engine with 5 node types, FakeLLM and local Ollama, approval queue, roles and identities, hashed audit, 3 trigger types, vacation and leave policy, HTML/PDF report, web panel, 48 checks.</span></div></div>
   <div class="phase"><div class="tag">1.1.0</div><div class="d"><strong>Executive dashboard</strong><span>Canvas result against target, agent operations, control and risk, LLM cost and rule-based alerts; board role; HTML and PDF; 62 checks.</span></div></div>
   <div class="phase"><div class="tag">1.2.0</div><div class="d"><strong>Trends</strong><span>Weekly history with automatic snapshot, pace by regression, projection to target, early signals, comparison between people and what-if scenarios; strategy role; 75 checks.</span></div></div>
+  <div class="phase"><div class="tag">1.3.0</div><div class="d"><strong>Command Center</strong><span>Agent Control Tower (traffic light per workflow, queue by age with SLA, failures, events) and Mission Control (canvas metric, how much is missing, decision queue), with actions: pause, resume, run now, re-run, escalate, trigger, approve; operations role; 93 checks.</span></div></div>
   <div class="phase"><div class="tag">Next</div><div class="d"><strong>More reference apps</strong><span>Other processes using the same engine, each with its own canvas, policies and tests.</span></div></div>
   <div class="phase"><div class="tag">Later</div><div class="d"><strong>Production connectors</strong><span>Examples of an SMTP executor, corporate login on the panel and database reads in the context node.</span></div></div>
 </div></section>

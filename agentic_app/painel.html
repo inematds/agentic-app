@@ -43,6 +43,7 @@ code{font-family:"JetBrains Mono",monospace;font-size:.8rem}
   <span style="flex:1"></span>
   <a id="lnkExec" class="mut" href="/executivo" target="_blank" rel="noopener" style="color:var(--amb)">Painel executivo</a>
   <a id="lnkTend" class="mut" href="/tendencias" target="_blank" rel="noopener" style="color:var(--amb)">Tendências</a>
+  <a id="lnkCmd" class="mut" href="/comando" target="_blank" rel="noopener" style="color:var(--amb)">Centro de Comando</a>
   <label class="mut" for="quem">Entrar como</label>
   <select id="quem"></select>
 </header>
@@ -123,6 +124,8 @@ async function carregar() {
   $("#lnkExec").title = "Só diretoria e admin. Outros papéis são negados e auditados.";
   $("#lnkTend").href = `/tendencias?usuario=${encodeURIComponent(uid)}`;
   $("#lnkTend").title = "Estratégia, diretoria e admin. Outros papéis são negados e auditados.";
+  $("#lnkCmd").href = `/comando?usuario=${encodeURIComponent(uid)}`;
+  $("#lnkCmd").title = "Operação, admin, gestor e diretoria. Controlar agentes: só operação e admin.";
   const p = E.painel;
   $("#equipe").innerHTML = `<tr><th>Pessoa</th><th>Metas</th><th>Engajamento</th><th>Último 1:1</th><th>Situação</th></tr>` +
     p.pessoas.map(x => `<tr><td><b>${esc(x.nome)}</b><br><span class="sub">${esc(x.cargo)}</span></td>

@@ -6,7 +6,7 @@
 
 Os gatilhos vêm do próprio JSON do workflow (campo "gatilhos"). Nada escondido no código.
 """
-from .workflow import resolver
+from .workflow import WorkflowPausado, resolver
 
 DIAS = {"seg": 0, "ter": 1, "qua": 2, "qui": 3, "sex": 4, "sab": 5, "dom": 6}
 
@@ -43,15 +43,28 @@ class Gatilhos:
             if chave in self._ja_rodou:
                 continue
             self._ja_rodou.add(chave)
-            resultados.append(self.motor.executar(wid, dict(g.get("entrada", {})),
-                                                  self.usuarios[g["usuario"]],
-                                                  gatilho=f"agendado:{g['dia_semana']} {g['hora']}"))
+            try:
+                resultados.append(self.motor.executar(wid, dict(g.get("entrada", {})),
+                                                      self.usuarios[g["usuario"]],
+                                                      gatilho=f"agendado:{g['dia_semana']} {g['hora']}"))
+            except WorkflowPausado:
+                continue  # pausado no Centro de Comando: o disparo ficou no audit; os outros seguem
         return resultados
+
+    def agendado_de(self, workflow_id):
+        """Primeiro gatilho agendado do workflow (para o 'rodar agora' do Centro de Comando)."""
+        for wid, g in self.agendados:
+            if wid == workflow_id:
+                return g
+        raise ValueError(f"{workflow_id} não tem gatilho agendado")
 
     def emitir(self, nome, evento: dict) -> list:
         resultados = []
         for wid, g in self.eventos.get(nome, []):
             entrada = resolver(g["mapa"], {"evento": evento})
-            resultados.append(self.motor.executar(wid, entrada, self.usuarios[g["usuario"]],
-                                                  gatilho=f"evento:{nome}"))
+            try:
+                resultados.append(self.motor.executar(wid, entrada, self.usuarios[g["usuario"]],
+                                                      gatilho=f"evento:{nome}"))
+            except WorkflowPausado:
+                continue  # evento recebido com o workflow pausado: fica no audit (hash), não é processado
         return resultados

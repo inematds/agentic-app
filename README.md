@@ -17,9 +17,9 @@ Guia completo (landing + passo a passo): **https://inematds.github.io/agentic-ap
 ```bash
 git clone https://github.com/inematds/agentic-app
 cd agentic-app
-bash tests/run.sh                 # 75 checks, sem rede -> última linha OK
+bash tests/run.sh                 # 93 checks, sem rede -> última linha OK
 python3 -m agentic_app.demo       # roda os 5 workflows, gera saida/relatorio.html e saida/executivo.html
-python3 -m agentic_app.serve      # painel em http://127.0.0.1:8765 (executivo: /executivo?usuario=dora)
+python3 -m agentic_app.serve      # painel em http://127.0.0.1:8765 (executivo: /executivo?usuario=dora · centro de comando: /comando?usuario=otavio)
 ```
 
 Nada para instalar além do Python 3.10+. O LLM padrão é o `FakeLLM` (determinístico). Para usar um modelo local:
@@ -88,6 +88,26 @@ Workflow `painel_tendencias` (papéis `estrategia`, `diretoria`, `admin`), rota 
 
 ![Painel de tendências](guia/assets/tendencias.jpg)
 
+## Centro de Comando (1.3.0)
+
+Executivo e tendências são para quem decide. O **Centro de Comando** é para quem **opera e acompanha ao vivo**:
+uma tela, rota `/comando`, workflow `centro_comando` (papéis `operacao`, `admin`, `gestor`, `diretoria`), com duas abas.
+
+- **Agentes · Agent Control Tower**: semáforo por workflow (ok, atenção, falha, pausado), última execução, falhas,
+  acessos negados, próximo disparo agendado, fila de aprovação por idade com SLA (24 h), corrente do audit, custo de
+  LLM e os últimos eventos. **Ações** (só `operacao` e `admin`): pausar, retomar, rodar agora, reexecutar, escalar.
+- **Negócio · Mission Control**: a métrica do canvas contra a meta e **quantas conversas faltam** para bater
+  (na demo: 42,9%, faltam 4), mais a fila de decisão, ou seja, quem está em risco, em que pé está (nenhuma ação,
+  rascunho esperando, rejeitado, enviado) e a próxima ação. **Ações**: acionar o agente certo, aprovar, rejeitar.
+  Cada botão roda com o papel de quem clicou.
+
+Regras: operação **nunca aprova nem envia** (escalar só marca o item). Workflow pausado não roda: o disparo fica no
+audit e os outros agendados seguem. Reexecutar só refaz execução agendada ou de entrada vazia, porque o audit guarda
+só o hash da entrada, de propósito. Toda ação e toda negativa vão para o audit. Configuração em `templates/comando.json`.
+
+![Centro de Comando: agentes](guia/assets/comando-agentes.jpg)
+![Centro de Comando: negócio](guia/assets/comando-negocio.jpg)
+
 ## Mapa do repositório
 
 | Caminho | O que é |
@@ -102,10 +122,11 @@ Workflow `painel_tendencias` (papéis `estrategia`, `diretoria`, `admin`), rota 
 | `agentic_app/apps/coaching/` | app de referência: dados, workflows JSON, funções |
 | `agentic_app/executivo.py` | painel executivo: indicadores de resultado, operação, controle e custo + alertas por regra |
 | `agentic_app/tendencias.py` | painel de tendências: histórico semanal, ritmo, projeção, sinais e cenários |
+| `agentic_app/comando.py`, `comando_html.py` | Centro de Comando: Agent Control Tower (agentes) + Mission Control (negócio), com ações |
 | `templates/` | canvas, modelo de workflow, modelo de política + teste, matriz de permissões, indicadores do executivo, tendências |
-| `docs/PASSO-A-PASSO.md` | do zero à implantação numa empresa (12 passos + checklist) |
+| `docs/PASSO-A-PASSO.md` | do zero à implantação numa empresa (13 passos + checklist) |
 | `docs/ARQUITETURA.md` | como as peças se encaixam |
-| `tests/` | `run.sh` (75 checks sem rede) e `prova_mutacao.sh` |
+| `tests/` | `run.sh` (93 checks sem rede) e `prova_mutacao.sh` |
 
 ## Onde ele se encaixa
 

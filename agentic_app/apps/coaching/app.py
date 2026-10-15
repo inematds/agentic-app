@@ -14,10 +14,10 @@ Componentes do painel -> workflows:
 """
 import json
 import re
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
-from ... import config, executivo, tendencias
+from ... import comando, config, executivo, tendencias
 from ...acoes import CaixaSaida, FilaAprovacao
 from ...gatilhos import Gatilhos
 from ...llm import normalizar
@@ -107,6 +107,43 @@ def detectar_sinais(equipe: dict) -> dict:
     return {"qtd": len(itens), "itens": itens}
 
 
+ORDEM_SITUACAO = {"sem_acao": 0, "rejeitado": 1, "rascunho_pendente": 2, "enviado": 3}
+
+
+def fila_de_decisoes(equipe: dict, fila: list) -> list:
+    """Mission Control: quem está em risco, em que pé está e qual é a próxima ação. Regra, não LLM."""
+    hoje = _data(equipe["data_referencia"])
+    sinais = {}
+    for s in detectar_sinais(equipe)["itens"]:
+        e = s["entrada"]
+        pid = e.get("liderado_id") or e.get("liderado_ids", [None])[0]
+        sinais.setdefault(pid, []).append(s)
+    saida = []
+    for p in equipe["liderados"]:
+        r = resumo_pessoa(p, hoje)
+        meus = sinais.get(p["id"], [])
+        if r["status"] == "em_dia" or not meus:
+            continue
+        itens = [i for i in fila if i["payload"].get("para") == r["email"]]
+        pend = [i for i in itens if i["status"] == "aguardando_aprovacao"]
+        acionar = {"rotulo": meus[0]["verbo"], "tipo": "acionar", "workflow": meus[0]["workflow"],
+                   "entrada": meus[0]["entrada"]}
+        if pend:
+            situacao, proxima = "rascunho_pendente", {"rotulo": "Revisar rascunho", "tipo": "aprovar",
+                                                      "acao_id": pend[-1]["id"]}
+        elif any(i["status"] == "executada" for i in itens):
+            situacao, proxima = "enviado", {"rotulo": "Acompanhar a resposta", "tipo": "nenhuma"}
+        elif any(i["status"] == "rejeitada" for i in itens):
+            situacao, proxima = "rejeitado", {**acionar, "rotulo": acionar["rotulo"] + " (de novo)"}
+        else:
+            situacao, proxima = "sem_acao", acionar
+        saida.append({"id": p["id"], "nome": p["nome"], "status": r["status"], "atrasadas": r["atrasadas"],
+                      "dias_sem_1a1": r["dias_sem_1a1"], "engajamento": r["engajamento"],
+                      "motivos": [s["motivo"] for s in meus], "situacao": situacao, "proxima": proxima})
+    saida.sort(key=lambda d: (ORDEM_SITUACAO[d["situacao"]], d["status"] != "atrasado", d["nome"]))
+    return saida
+
+
 def pegar_liderado(equipe: dict, liderado_id: str) -> dict:
     hoje = _data(equipe["data_referencia"])
     for p in equipe["liderados"]:
@@ -150,7 +187,8 @@ def metricas_negocio(equipe: dict, fila: list, regra: dict) -> dict:
     risco = [p for p in pessoas if p["status"] != "em_dia"]
     pct_conv = round(100 * cobertas / vencidas, 1) if vencidas else 100.0
     return {
-        "conversa_7d": {"valor": pct_conv, "detalhe": f"{cobertas} de {vencidas} metas vencidas"},
+        "conversa_7d": {"valor": pct_conv, "detalhe": f"{cobertas} de {vencidas} metas vencidas",
+                        "parte": cobertas, "todo": vencidas},
         "metas_concluidas": {"valor": round(100 * concl / len(metas), 1), "detalhe": f"{concl} de {len(metas)} metas"},
         "engajamento_medio": {"valor": serie_eng[-1], "serie": serie_eng, "rotulos": rot,
                               "detalhe": f"média de {len(pessoas)} pessoas nas últimas {semanas} semanas"},
@@ -306,6 +344,35 @@ class AppCoaching:
             tendencias.gravar_snapshot(linha, Path(pasta_saida) / art["arquivo"])
             return [art["arquivo"]]
 
+        cfg_cmd = _ler("comando.json")
+        self.cfg_comando = cfg_cmd
+        self.controle = comando.Controle(pasta / "comando.json", self.audit, cfg_cmd["acoes"]["controlar_agentes"])
+        aprovadores = acesso["aprovadores"]
+
+        @reg.contexto("estado_comando", escopo="comando.ler")
+        def _ctx_comando(args):
+            cat = {w: {"titulo": s["titulo"], "gatilhos": s.get("gatilhos", []), "seguranca": s["seguranca"]}
+                   for w, s in self.motor.workflows.items()}
+            return {"catalogo": cat, "estado": json.loads(json.dumps(self.controle.estado))}
+
+        @reg.funcao("centro_de_comando")
+        def _centro(equipe, registros, aprovacoes, estado, usuario, agora):
+            papeis = set(usuario["papeis"])
+            fila = aprovacoes["fila"]
+            vals = metricas_negocio(equipe, fila, indicadores["regra_conversa"])
+            mets = [executivo.metrica(c, vals[c["id"]]["valor"], vals[c["id"]].get("serie"),
+                                      vals[c["id"]].get("rotulos"), vals[c["id"]].get("detalhe", ""))
+                    for c in indicadores["metricas"]]
+            pode = {"controlar": bool(papeis & set(cfg_cmd["acoes"]["controlar_agentes"])),
+                    "aprovar": bool(papeis & set(aprovadores["enviar_email"])),
+                    "acionar": {w: bool(papeis & set(s["seguranca"]["executar"]))
+                                for w, s in estado["catalogo"].items()}}
+            cfg = {**cfg_cmd, "custo_por_modelo": indicadores.get("custo_por_modelo", {})}
+            return comando.calcular(estado["catalogo"], estado["estado"], registros["audit"], fila,
+                                    registros["enviados"], registros["quebra_na_linha"], cfg,
+                                    datetime.fromisoformat(agora), mets, indicadores["metrica_principal"],
+                                    vals[indicadores["metrica_principal"]], fila_de_decisoes(equipe, fila), pode)
+
         reg.funcoes["fatos_para_narrativa"] = tendencias.fatos_para_narrativa
         reg.funcoes["com_narrativa"] = lambda d, narrativa: {**d, "narrativa": narrativa}
         reg.artefatos["tendencias"] = gerar_tendencias
@@ -321,6 +388,7 @@ class AppCoaching:
         self.motor = Motor(reg, self.audit, self.fila, llm=llm)
         for arq in sorted(WORKFLOWS.glob("*.json")):
             self.motor.adicionar(arq)
+        self.motor.pausado = self.controle.pausado
         self.gatilhos = Gatilhos(self.motor, self.usuarios)
         self.sugestoes = []
 
@@ -343,6 +411,61 @@ class AppCoaching:
     def gravar_snapshot(self, usuario=None, gatilho="manual"):
         """Foto da semana em historico.jsonl (o agendado de segunda 07:00 faz isso sozinho)."""
         return self.motor.executar("snapshot_indicadores", {}, usuario or self.usuarios["sistema"], gatilho=gatilho)
+
+    # ---------------------------------------------------------- Centro de Comando
+    def comando(self, usuario, agora=None, gatilho="manual"):
+        """Centro de Comando (Agent Control Tower + Mission Control): workflow centro_comando."""
+        agora = agora or datetime.now().astimezone()
+        if isinstance(agora, datetime):
+            agora = agora.isoformat(timespec="seconds")
+        return self.motor.executar("centro_comando", {"agora": agora}, usuario, gatilho=gatilho)
+
+    def _wf(self, workflow_id):
+        if workflow_id not in self.motor.workflows:
+            raise KeyError(f"workflow inexistente: {workflow_id}")
+        return self.motor.workflows[workflow_id]
+
+    def pausar(self, workflow_id, usuario, motivo=""):
+        self._wf(workflow_id)
+        return self.controle.pausar(workflow_id, usuario, motivo)
+
+    def retomar(self, workflow_id, usuario):
+        self._wf(workflow_id)
+        return self.controle.retomar(workflow_id, usuario)
+
+    def escalar(self, acao_id, usuario, motivo=""):
+        return self.controle.escalar(self.fila.obter(acao_id), usuario, motivo)
+
+    def _rodar(self, workflow_id, entrada, como, gatilho):
+        r = self.motor.executar(workflow_id, entrada, self.usuarios[como], gatilho=gatilho)
+        if workflow_id == "proximos_passos":
+            self.guardar_sugestoes(r)
+        return r
+
+    def rodar_agora(self, workflow_id, usuario):
+        """Dispara já um workflow agendado, com o usuário e a entrada do próprio gatilho."""
+        self._wf(workflow_id)
+        self.controle.checar(usuario, "rodar", workflow_id)
+        g = self.gatilhos.agendado_de(workflow_id)
+        self.audit.registrar("comando.rodar", workflow=workflow_id, usuario=usuario.id, como=g["usuario"])
+        return self._rodar(workflow_id, dict(g.get("entrada", {})), g["usuario"], f"comando:rodar:{usuario.id}")
+
+    def reexecutar(self, run_id, usuario):
+        """Refaz uma execução (agendada ou de entrada vazia). Ação externa continua passando por aprovação."""
+        self.controle.checar(usuario, "reexecutar", run_id)
+        linhas = [l for l in self.audit.ler() if l.get("run_id") == run_id
+                  and l.get("evento") in ("workflow.executado", "workflow.negado")]
+        if not linhas:
+            raise KeyError(f"execução não encontrada: {run_id}")
+        linha = linhas[-1]
+        if linha.get("status") == "negado":
+            raise ValueError("barrado no escopo: refazer repete o bloqueio; ajuste prompt ou modelo")
+        entrada, quem = comando.reexecucao(linha, self._wf(linha["workflow"]), self.cfg_comando["executar_como"])
+        if entrada is None:
+            raise ValueError(quem)
+        self.audit.registrar("comando.reexecutar", run_id=run_id, workflow=linha["workflow"], usuario=usuario.id,
+                             como=quem)
+        return self._rodar(linha["workflow"], entrada, quem, f"comando:reexecucao:{run_id}")
 
     def guardar_sugestoes(self, resultado):
         self.sugestoes = resultado["saida"]["sugestoes"]

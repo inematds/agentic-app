@@ -1,0 +1,21 @@
+{
+  "id": "centro_comando",
+  "versao": 1,
+  "titulo": "Centro de Comando (Agent Control Tower + Mission Control)",
+  "resultado_de_negocio": "Quem opera vê em uma tela o que os agentes fazem agora e o que falta para a métrica do canvas, e age na hora.",
+  "seguranca": {"executar": ["operacao", "admin", "gestor", "diretoria"], "identidade": "svc-comando"},
+  "gatilhos": [{"tipo": "manual", "componente": "aba_comando"}],
+  "entrada": {"type": "object", "required": ["agora"], "additionalProperties": false,
+              "properties": {"agora": {"type": "string", "minLength": 16}}},
+  "nos": [
+    {"id": "ctx", "tipo": "contexto", "carregar": "equipe"},
+    {"id": "registros", "tipo": "contexto", "carregar": "registros_operacao"},
+    {"id": "aprovacoes", "tipo": "contexto", "carregar": "aprovacoes"},
+    {"id": "estado", "tipo": "contexto", "carregar": "estado_comando"},
+    {"id": "painel", "tipo": "codigo", "funcao": "centro_de_comando",
+     "args": {"equipe": "$ctx", "registros": "$registros", "aprovacoes": "$aprovacoes", "estado": "$estado",
+              "usuario": "$usuario", "agora": "$entrada.agora"}},
+    {"id": "saida", "tipo": "formatacao", "saida": "$painel",
+     "esquema": {"type": "object", "required": ["saude", "agentes", "negocio", "pode"]}}
+  ]
+}

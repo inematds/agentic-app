@@ -27,6 +27,10 @@ class ErroWorkflow(RuntimeError):
     pass
 
 
+class WorkflowPausado(ErroWorkflow):
+    """O workflow foi pausado no Centro de Comando: o disparo fica no audit e não roda."""
+
+
 class Registro:
     """O que os workflows podem usar. Tudo explícito: nada é chamado por nome solto."""
 
@@ -105,7 +109,9 @@ class Motor:
         self.fila = fila
         self.llm = llm or get_llm()
         self.workflows = {}
-        self._execucoes = 0
+        self.pausado = lambda workflow_id: False  # o Centro de Comando troca por Controle.pausado
+        # continua a numeração do audit: run_id não se repete quando o painel reinicia
+        self._execucoes = sum(1 for l in audit.ler() if l.get("evento") in ("workflow.executado", "workflow.negado"))
 
     def adicionar(self, origem) -> dict:
         spec = carregar_spec(origem)
@@ -127,6 +133,12 @@ class Motor:
         if not usuario.tem_algum(seg["executar"]):
             self.audit.registrar("workflow.negado", **base, motivo="papel sem permissão de executar")
             raise PermissaoNegada(f"{usuario.id} ({', '.join(usuario.papeis)}) não executa {workflow_id}")
+
+        if self.pausado(workflow_id):
+            self.audit.registrar("workflow.executado", **base, status="pausado",
+                                 erro="pausado no Centro de Comando", nos=[], propostas=[], modelos=[],
+                                 llm={"chamadas": {}, "tokens_estimados": 0})
+            raise WorkflowPausado(f"{workflow_id} está pausado no Centro de Comando")
 
         identidade = self.registro.identidades.get(seg["identidade"])
         if identidade is None:

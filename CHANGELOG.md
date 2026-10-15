@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.3.0 — 2026-10-15
+
+Centro de Comando: uma tela para quem opera e acompanha ao vivo, com duas abas e ações.
+
+- `agentic_app/comando.py` (só stdlib, determinístico): `Controle` (pausas e escaladas em `saida/comando.json`,
+  toda mudança e toda negativa no audit) e `calcular(...)` validado por `comando.ESQUEMA`.
+- **Agentes · Agent Control Tower**: semáforo por workflow (ok, atenção, falha, pausado, sem execução), última
+  execução, próximo disparo agendado, fila de aprovação por idade com SLA, falhas/bloqueios/negados, corrente do
+  audit, custo de LLM e últimos eventos. Ações: pausar, retomar, rodar agora, reexecutar, escalar.
+- **Negócio · Mission Control**: métricas do canvas (mesmo cálculo do executivo), quantas conversas faltam para a
+  meta, fila de decisão por pessoa (`fila_de_decisoes`: sem ação, rascunho esperando, rejeitado, enviado) com a
+  próxima ação. Ações: acionar o agente, aprovar, rejeitar (com o papel de quem clicou).
+- Workflow `centro_comando` (papéis `operacao`, `admin`, `gestor`, `diretoria`; identidade só leitura `svc-comando`
+  com o escopo novo `comando.ler`); usuário fictício Otávio (operação). Controlar agentes: só `operacao` e `admin`;
+  operação nunca aprova nem envia.
+- Motor: workflow pausado não roda (`WorkflowPausado`, HTTP 409, linha `status="pausado"` no audit); `Gatilhos.tick`
+  e `emitir` pulam o pausado sem derrubar os outros. `run_id` continua a numeração do audit após reinício.
+- Reexecutar só execução agendada ou de entrada vazia (o audit guarda só o hash da entrada, de propósito).
+- `serve.py`: `/comando`, `/api/comando` (`?agora=` injetável) e `POST /api/comando/{pausar|retomar|rodar|reexecutar|escalar}/<alvo>`;
+  link no painel. `executivo`: `comando.negado` conta nos acessos negados; `centro_comando` fora da operação.
+- `templates/comando.json`; `permissoes.json` com papel, identidade e linha novos. `demo.py`: seção 12.
+- Testes: 93 checks (18 novos). Docs PT/EN/ES, ARQUITETURA, PASSO-A-PASSO (passo 13), guia com a seção "Centro de Comando".
+
 ## 1.2.0 — 2026-10-15
 
 Painel de tendências: "para onde está indo?" (o executivo responde "está entregando agora?").

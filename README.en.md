@@ -17,9 +17,9 @@ Full guide (landing + step by step): **https://inematds.github.io/agentic-app/gu
 ```bash
 git clone https://github.com/inematds/agentic-app
 cd agentic-app
-bash tests/run.sh                 # 75 checks, no network -> last line OK
+bash tests/run.sh                 # 93 checks, no network -> last line OK
 python3 -m agentic_app.demo       # runs the 5 workflows, generates saida/relatorio.html and saida/executivo.html
-python3 -m agentic_app.serve      # panel at http://127.0.0.1:8765 (executive: /executivo?usuario=dora)
+python3 -m agentic_app.serve      # panel at http://127.0.0.1:8765 (executive: /executivo?usuario=dora · command center: /comando?usuario=otavio)
 ```
 
 Nothing to install beyond Python 3.10+. The default LLM is `FakeLLM` (deterministic). To use a local model:
@@ -89,6 +89,27 @@ Workflow `painel_tendencias` (roles `estrategia`, `diretoria`, `admin`), route `
 
 ![Trends dashboard](guia/assets/tendencias.jpg)
 
+## Command Center (1.3.0)
+
+The executive and trends dashboards are for people who decide. The **Command Center** is for people who **operate and
+watch live**: one screen, route `/comando`, workflow `centro_comando` (roles `operacao`, `admin`, `gestor`, `diretoria`), two tabs.
+
+- **Agents · Agent Control Tower**: traffic light per workflow (ok, attention, failure, paused), last run, failures,
+  denied access, next scheduled run, approval queue by age with SLA (24 h), audit chain, LLM cost and latest events.
+  **Actions** (only `operacao` and `admin`): pause, resume, run now, re-run, escalate.
+- **Business · Mission Control**: the canvas metric against its target and **how many conversations are still
+  missing** (demo: 42.9%, 4 missing), plus the decision queue, meaning who is at risk, where each case stands (no
+  action, draft waiting, rejected, sent) and the next action. **Actions**: trigger the right agent, approve, reject.
+  Every button runs with the role of whoever clicked it.
+
+Rules: operations **never approves or sends** (escalating only flags the item). A paused workflow does not run: the
+trigger stays in the audit and the other scheduled ones keep going. Re-run only redoes scheduled runs or runs with
+empty input, because the audit keeps only the input hash, on purpose. Every action and every denial goes to the
+audit. Settings in `templates/comando.json`.
+
+![Command Center: agents](guia/assets/comando-agentes.jpg)
+![Command Center: business](guia/assets/comando-negocio.jpg)
+
 ## Repository map
 
 | Path | What it is |
@@ -103,10 +124,11 @@ Workflow `painel_tendencias` (roles `estrategia`, `diretoria`, `admin`), route `
 | `agentic_app/apps/coaching/` | reference app: data, JSON workflows, functions |
 | `agentic_app/executivo.py` | executive dashboard: result, operations, control and cost indicators + rule-based alerts |
 | `agentic_app/tendencias.py` | trends dashboard: weekly history, pace, projection, signals and scenarios |
+| `agentic_app/comando.py`, `comando_html.py` | Command Center: Agent Control Tower (agents) + Mission Control (business), with actions |
 | `templates/` | canvas, workflow template, policy template + test, permissions matrix, executive indicators, trends |
-| `docs/PASSO-A-PASSO.md` | from zero to rollout in a company (12 steps + checklist) — in Portuguese |
+| `docs/PASSO-A-PASSO.md` | from zero to rollout in a company (13 steps + checklist) — in Portuguese |
 | `docs/ARQUITETURA.md` | how the pieces fit together — in Portuguese |
-| `tests/` | `run.sh` (75 checks, no network) and `prova_mutacao.sh` |
+| `tests/` | `run.sh` (93 checks, no network) and `prova_mutacao.sh` |
 
 ## Where it fits
 

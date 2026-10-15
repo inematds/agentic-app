@@ -134,6 +134,7 @@
     <a class="sec" href="#guia">Guía de uso</a>
     <a class="sec" href="#executivo">Ejecutivo</a>
     <a class="sec" href="#tendencias">Tendencias</a>
+    <a class="sec" href="#comando">Comando</a>
     <a class="sec" href="#videos">Videos</a>
     <a class="sec" href="#encaixe">Dónde encaja</a>
     <span class="lang"><a href="../">PT</a><a href="../en/">EN</a><a class="on" href="./">ES</a></span>
@@ -234,10 +235,10 @@
 
   <div class="step"><div class="b">1</div><div>
     <h3>Descarga y ejecuta las pruebas</h3>
-    <p>75 checks, sin red. La última línea tiene que ser OK.</p>
+    <p>93 checks, sin red. La última línea tiene que ser OK.</p>
 <pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
 <span class="k">cd</span> agentic-app
-<span class="k">bash</span> tests/run.sh          <span class="c"># 75 checks, 0 fallas → OK</span></pre>
+<span class="k">bash</span> tests/run.sh          <span class="c"># 93 checks, 0 fallas → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
@@ -349,6 +350,26 @@
   </div>
 </div></section>
 
+<section id="comando"><div class="wrap">
+  <span class="chip">Centro de Comando · 1.3.0</span>
+  <h2>Una pantalla para quien opera: qué hacen los agentes ahora y qué falta para la meta</h2>
+  <p class="sub">El ejecutivo y las tendencias son para quien decide. El Centro de Comando es para quien sigue en vivo y actúa en el momento. Dos pestañas: <strong>Agentes</strong> (Agent Control Tower) y <strong>Negocio</strong> (Mission Control).</p>
+  <div class="exec">
+    <div class="grid">
+      <div class="card"><h3>🛰️ Agent Control Tower</h3><p>Semáforo por workflow (ok, atención, falla, pausado), última ejecución, próximo disparo agendado, cola de aprobación por antigüedad con SLA de 24 h, fallas y accesos negados, cadena del audit y últimos eventos.</p></div>
+      <div class="card"><h3>🎛️ Acciones sobre los agentes</h3><p>Pausar (el disparo queda en el audit y no corre; los otros agendados siguen), reanudar, ejecutar ahora, reejecutar y escalar una aprobación detenida. Solo el rol <code>operacao</code> y admin. Operación nunca aprueba ni envía.</p></div>
+      <div class="card"><h3>🎯 Mission Control</h3><p>La métrica del canvas contra la meta y cuántas conversaciones faltan (en la demo: 42,9%, faltan 4). Cola de decisión: quién está en riesgo, en qué estado está y la próxima acción, con botón para activar el agente, aprobar o rechazar.</p></div>
+      <div class="card"><h3>🔒 Cada clic con tu rol</h3><p>Un botón sin permiso aparece deshabilitado con el motivo, y el servidor vuelve a verificar. Toda acción y toda negativa van al audit. Reejecutar solo rehace lo que no exige guardar la entrada de la persona.</p>
+<pre><span class="k">python3</span> -m agentic_app.demo   <span class="c"># sección 12: pausar, escalar, panel</span>
+<span class="c"># http://127.0.0.1:8765/comando?usuario=otavio</span></pre></div>
+    </div>
+    <div style="display:grid;gap:14px">
+      <figure><img src="../assets/comando-agentes.jpg" alt="Pestaña Agentes del Centro de Comando con semáforo por workflow, próximo disparo y botones de pausar, ejecutar ahora y reejecutar" loading="lazy"><figcaption>Pestaña Agentes (captura real de la demo): 6 workflows de operación en verde, próximos disparos y acciones por workflow.</figcaption></figure>
+      <figure><img src="../assets/comando-negocio.jpg" alt="Pestaña Negocio del Centro de Comando con la métrica del canvas, cuánto falta para la meta y la cola de decisión por persona" loading="lazy"><figcaption>Pestaña Negocio: 42,9% contra una meta de 90%, faltan 4 conversaciones, y la cola de quién necesita acción.</figcaption></figure>
+    </div>
+  </div>
+</div></section>
+
 <section id="videos" class="videos"><div class="wrap">
   <span class="chip">Videos</span>
   <h2>Mira el framework en acción</h2>
@@ -375,10 +396,11 @@
 <section id="roadmap"><div class="wrap">
   <span class="chip">Roadmap</span>
   <h2>Lo que ya existe y lo que viene después</h2>
-  <p class="sub">La versión 1.0.0 es el núcleo completo con una app de referencia. La 1.1.0 agrega el panel ejecutivo y la 1.2.0, el de tendencias.</p>
+  <p class="sub">La versión 1.0.0 es el núcleo completo con una app de referencia. La 1.1.0 agrega el panel ejecutivo la 1.2.0, el de tendencias, y la 1.3.0, el Centro de Comando.</p>
   <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Núcleo + Coaching para gerentes</strong><span>Motor con 5 tipos de nodo, FakeLLM y Ollama local, cola de aprobación, roles e identidades, audit con hash, 3 tipos de disparador, política de vacaciones y licencia, informe HTML/PDF, panel web, 48 checks.</span></div></div>
   <div class="phase"><div class="tag">1.1.0</div><div class="d"><strong>Panel ejecutivo</strong><span>Resultado del canvas contra la meta, operación de los agentes, control y riesgo, costo de LLM y alertas por regla; rol dirección; HTML y PDF; 62 checks.</span></div></div>
   <div class="phase"><div class="tag">1.2.0</div><div class="d"><strong>Tendencias</strong><span>Historial semanal con foto automática, ritmo por regresión, proyección hasta la meta, señales anticipadas, comparación entre personas y escenarios "¿y si?"; rol estrategia; 75 checks.</span></div></div>
+  <div class="phase"><div class="tag">1.3.0</div><div class="d"><strong>Centro de Comando</strong><span>Agent Control Tower (semáforo por workflow, cola por antigüedad con SLA, fallas, eventos) y Mission Control (métrica del canvas, cuánto falta, cola de decisión), con acciones: pausar, reanudar, ejecutar ahora, reejecutar, escalar, activar, aprobar; rol operación; 93 checks.</span></div></div>
   <div class="phase"><div class="tag">Próximo</div><div class="d"><strong>Más apps de referencia</strong><span>Otros procesos usando el mismo motor, cada uno con su canvas, sus políticas y sus pruebas.</span></div></div>
   <div class="phase"><div class="tag">Después</div><div class="d"><strong>Conectores de producción</strong><span>Ejemplos de ejecutor SMTP, inicio de sesión corporativo en el panel y lectura de base de datos en el nodo de contexto.</span></div></div>
 </div></section>

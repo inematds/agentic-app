@@ -1,0 +1,10 @@
+{
+  "_aviso": "Centro de Comando do app de referência (dados fictícios). Cópia preenchida de templates/comando.json.",
+  "acesso": ["operacao", "admin", "gestor", "diretoria"],
+  "acoes": {"controlar_agentes": ["operacao", "admin"]},
+  "executar_como": "sistema",
+  "sla_aprovacao_horas": 24,
+  "eventos_no_feed": 15,
+  "problemas_max": 10,
+  "ignorar_workflows": ["centro_comando", "painel_executivo", "painel_tendencias"]
+}

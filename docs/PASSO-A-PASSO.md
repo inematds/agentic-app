@@ -115,6 +115,24 @@ chega no prazo.
 **Deu certo quando:** a reunião trimestral decide pela projeção e pelos sinais, não por impressão, e cada número da
 narrativa tem origem no código (o LLM só costura as frases).
 
+## Passo 13 — Operar ao vivo pelo Centro de Comando
+
+Os painéis anteriores são para decidir. O Centro de Comando é para operar: ver o que os agentes fazem agora e o que
+falta para a meta, e agir na hora.
+
+1. Copie `templates/comando.json` para a pasta `data/` do seu app. Ajuste `acesso` (quem abre a tela),
+   `acoes.controlar_agentes` (quem pausa e reexecuta), `sla_aprovacao_horas` e `ignorar_workflows` (os painéis de leitura).
+2. Dê o papel `operacao` a quem cuida dos agentes no dia a dia. Ele pausa, retoma, roda agora, reexecuta e escala,
+   mas **não aprova nem envia**: aprovar continua com quem já aprovava.
+3. Abra `/comando`. Na aba **Agentes**, comece pelos vermelhos (última execução falhou) e pela fila fora do SLA.
+   Workflow produzindo texto ruim? Pause, corrija o prompt ou a política, rode os testes e retome.
+4. Na aba **Negócio**, trabalhe a fila de decisão de cima para baixo: primeiro quem está sem nenhuma ação.
+   O número "faltam N" diz quantas conversas ainda separam a métrica da meta.
+5. Em produção, troque o `?usuario=` da demo pelo login corporativo e guarde `comando.json` junto com o audit.
+
+**Deu certo quando:** nenhuma aprovação fica parada além do SLA sem alguém ver, uma falha de agente é pausada antes
+de gerar dano, e a equipe sabe de manhã quantas conversas faltam para a meta.
+
 ## Checklist de implantação
 
 - [ ] Canvas preenchido, com métrica, linha de base e dono
@@ -132,3 +150,4 @@ narrativa tem origem no código (o LLM só costura as frases).
 - [ ] Piloto medido contra a linha de base antes de ampliar
 - [ ] `indicadores.json` com metas do canvas e preços por modelo; painel executivo só para diretoria/admin
 - [ ] Snapshot semanal agendado, histórico de exemplo removido, revisão trimestral com o painel de tendências
+- [ ] Papel `operacao` definido, SLA de aprovação combinado e Centro de Comando aberto todo dia por quem opera

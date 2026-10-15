@@ -107,7 +107,7 @@ def _fmt(v):
     return f"{v:g}" if isinstance(v, float) else str(v)
 
 
-def _metrica(cfg: dict, valor, serie=None, rotulos=None, detalhe="") -> dict:
+def metrica(cfg: dict, valor, serie=None, rotulos=None, detalhe="") -> dict:
     atingiu = valor >= cfg["meta"] if cfg["sentido"] == "maior" else valor <= cfg["meta"]
     m = {"id": cfg["id"], "nome": cfg["nome"], "unidade": cfg["unidade"], "valor": valor, "meta": cfg["meta"],
          "sentido": cfg["sentido"], "atingiu": atingiu, "serie": list(serie or [valor])}
@@ -118,6 +118,9 @@ def _metrica(cfg: dict, valor, serie=None, rotulos=None, detalhe="") -> dict:
     if detalhe:
         m["detalhe"] = detalhe
     return m
+
+
+_metrica = metrica  # nome antigo (1.1.0)
 
 
 # ------------------------------------------------------------------ blocos
@@ -164,7 +167,7 @@ def bloco_operacao(audit: list, fila: list, sugestoes: list, ignorar=()) -> dict
 def bloco_controle(audit: list, fila: list, enviados: list, quebra_na_linha: int) -> dict:
     negados, por_papel = 0, {}
     for l in audit:
-        if l.get("evento") in ("workflow.negado", "acao.negada"):
+        if l.get("evento") in ("workflow.negado", "acao.negada", "comando.negado"):
             negados += 1
             for p in l.get("papeis", []) or ["sem papel"]:
                 por_papel[p] = por_papel.get(p, 0) + 1
@@ -265,7 +268,7 @@ def calcular(metricas_app: dict, audit: list, fila: list, enviados: list, sugest
     mets = []
     for cfg in indicadores["metricas"]:
         v = metricas_app[cfg["id"]]
-        mets.append(_metrica(cfg, v["valor"], v.get("serie"), v.get("rotulos"), v.get("detalhe", "")))
+        mets.append(metrica(cfg, v["valor"], v.get("serie"), v.get("rotulos"), v.get("detalhe", "")))
     negocio = {"principal": indicadores["metrica_principal"], "metricas": mets,
                "regra": indicadores.get("regra_principal", "")}
     # o próprio painel é leitura, não operação de agente: fica fora das contagens (mas no audit)

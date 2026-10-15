@@ -1,7 +1,8 @@
 """Painel web local: python3 -m agentic_app.serve [--porta 8765]
 
 Só 127.0.0.1. Usuário da demo vem do cabeçalho X-Usuario (ana, rosa, bruno, dora).
-As abas /executivo e /tendencias também aceitam ?usuario=dora / ?usuario=estela (um link não manda cabeçalho) — mesma confiança da demo.
+As abas /executivo, /tendencias e /comando também aceitam ?usuario=dora / ?usuario=estela / ?usuario=otavio
+(um link não manda cabeçalho) — mesma confiança da demo. /comando aceita ?agora=AAAA-MM-DDTHH:MM (testes, demo).
 Na sua empresa, troque isso pelo login corporativo (SSO) — ver docs/PASSO-A-PASSO.md.
 
 A lógica fica em `tratar(...)`, função pura que os testes chamam sem abrir socket.
@@ -16,9 +17,10 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from .apps.coaching import montar
+from .comando_html import render_comando_html
 from .relatorio import render_executivo_html, render_tendencias_html
 from .seguranca import PermissaoNegada
-from .workflow import ErroWorkflow
+from .workflow import ErroWorkflow, WorkflowPausado
 
 PAINEL = Path(__file__).resolve().parent / "painel.html"
 _APP = None
@@ -92,6 +94,21 @@ def tratar(metodo, caminho, corpo=b"", uid="ana", a=None):
             if rota == "/api/tendencias":
                 return _json(200, r["saida"])
             return 200, "text/html; charset=utf-8", render_tendencias_html(r["saida"]).encode()
+        if metodo == "GET" and rota in ("/comando", "/api/comando"):
+            qs = parse_qs(url.query)
+            quem = qs.get("usuario", [uid])[0]
+            try:
+                agora = qs.get("agora", [None])[0]
+                agora = agora.replace(" ", "+") if agora else None  # '+' do fuso vira espaço na query
+                r = a.comando(a.usuario(quem), agora=agora, gatilho="manual:painel")
+            except PermissaoNegada as e:
+                if rota == "/comando":
+                    return 403, "text/html; charset=utf-8", NEGADO_HTML.format(
+                        msg=html.escape(str(e)), quem="operação, admin, gestor e diretoria").encode()
+                raise
+            if rota == "/api/comando":
+                return _json(200, r["saida"])
+            return 200, "text/html; charset=utf-8", render_comando_html(r["saida"], quem).encode()
         if metodo == "GET" and rota == "/api/audit":
             return _json(200, a.audit.ler()[-50:])
         if metodo == "GET" and rota.startswith("/saida/"):
@@ -119,6 +136,18 @@ def tratar(metodo, caminho, corpo=b"", uid="ana", a=None):
                 return _json(200, a.fila.rejeitar(partes[2], usuario, dados.get("motivo", "")))
         if partes[:2] == ["api", "sugestoes"] and len(partes) == 4 and partes[3] == "executar":
             return _json(200, a.executar_sugestao(partes[2], usuario))
+        if partes[:2] == ["api", "comando"] and len(partes) == 4:
+            acao, alvo = partes[2], partes[3]
+            if acao == "pausar":
+                return _json(200, a.pausar(alvo, usuario, dados.get("motivo", "")))
+            if acao == "retomar":
+                return _json(200, a.retomar(alvo, usuario))
+            if acao == "rodar":
+                return _json(200, a.rodar_agora(alvo, usuario))
+            if acao == "reexecutar":
+                return _json(200, a.reexecutar(alvo, usuario))
+            if acao == "escalar":
+                return _json(200, a.escalar(alvo, usuario, dados.get("motivo", "")))
         if rota == "/api/agendador/tick":
             return _json(200, [r["run_id"] for r in a.gatilhos.tick(datetime.fromisoformat(dados["agora"]))])
         if partes[:2] == ["api", "eventos"] and len(partes) == 3:
@@ -126,6 +155,8 @@ def tratar(metodo, caminho, corpo=b"", uid="ana", a=None):
         return _json(404, {"erro": "rota não encontrada"})
     except PermissaoNegada as e:
         return _json(403, {"erro": str(e)})
+    except WorkflowPausado as e:
+        return _json(409, {"erro": str(e)})
     except (ErroWorkflow, ValueError) as e:
         return _json(400, {"erro": str(e)})
     except (KeyError, StopIteration) as e:

@@ -8,6 +8,7 @@ from datetime import datetime
 
 from . import __version__, config
 from .apps.coaching import montar
+from .comando import resumo_texto as resumo_comando
 from .executivo import resumo_texto
 from .tendencias import resumo_texto as resumo_tendencias
 from .seguranca import PermissaoNegada
@@ -19,7 +20,8 @@ def titulo(t):
 
 def main():
     pasta = config.pasta_saida()
-    for arq in ("audit.jsonl", "caixa_saida.jsonl", "aprovacoes.json", "sugestoes.json", "historico.jsonl"):
+    for arq in ("audit.jsonl", "caixa_saida.jsonl", "aprovacoes.json", "sugestoes.json", "historico.jsonl",
+                "comando.json"):
         (pasta / arq).unlink(missing_ok=True)
     app = montar(pasta)
     ana, bruno, sistema = app.usuario("ana"), app.usuario("bruno"), app.usuario("sistema")
@@ -115,8 +117,30 @@ def main():
     print("Narrativa (LLM só costura frases com números do código):\n  " + rt["saida"]["narrativa"])
     print("gerados:", ", ".join(f"{pasta}/{a}" for a in rt["saida"]["artefatos"]))
 
+    titulo("12. Centro de Comando: Agent Control Tower + Mission Control")
+    otavio = app.usuario("otavio")
+    try:
+        app.pausar("followup_metas", ana)
+    except PermissaoNegada as e:
+        print(f"gestora tenta pausar: negado e auditado ({e})")
+    app.pausar("convite_1a1", otavio, "revisar o texto do convite")
+    print("operação (Otávio) pausa convite_1a1; a gestora tenta rodar:")
+    try:
+        app.motor.executar("convite_1a1", {"liderado_id": "joao"}, ana)
+    except Exception as e:  # noqa: BLE001
+        print(f"  bloqueado e registrado: {e}")
+    alvo = app.fila.pendentes()[0]["id"]
+    app.escalar(alvo, otavio, "esperando há mais de um dia")
+    print(f"{alvo} escalada para quem aprova (operação não aprova)")
+    agora = datetime(2026, 10, 16, 13, 0).astimezone()
+    for linha in resumo_comando(app.comando(otavio, agora=agora)["saida"]):
+        print(linha)
+    app.retomar("convite_1a1", otavio)
+    print("convite_1a1 retomado.")
+
     print("\nPainel web: python3 -m agentic_app.serve  ->  http://127.0.0.1:8765  "
-          "(executivo: /executivo?usuario=dora · tendências: /tendencias?usuario=estela)")
+          "(executivo: /executivo?usuario=dora · tendências: /tendencias?usuario=estela · "
+          "centro de comando: /comando?usuario=otavio)")
 
 
 if __name__ == "__main__":

@@ -134,6 +134,7 @@
     <a class="sec" href="#guia">Guia de uso</a>
     <a class="sec" href="#executivo">Executivo</a>
     <a class="sec" href="#tendencias">Tendências</a>
+    <a class="sec" href="#comando">Comando</a>
     <a class="sec" href="#videos">Vídeos</a>
     <a class="sec" href="#encaixe">Onde se encaixa</a>
     <span class="lang"><a class="on" href="./">PT</a><a href="en/">EN</a><a href="es/">ES</a></span>
@@ -234,10 +235,10 @@
 
   <div class="step"><div class="b">1</div><div>
     <h3>Baixe e rode os testes</h3>
-    <p>75 checks, sem rede. A última linha tem que ser OK.</p>
+    <p>93 checks, sem rede. A última linha tem que ser OK.</p>
 <pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
 <span class="k">cd</span> agentic-app
-<span class="k">bash</span> tests/run.sh          <span class="c"># 75 checks, 0 falhas → OK</span></pre>
+<span class="k">bash</span> tests/run.sh          <span class="c"># 93 checks, 0 falhas → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
@@ -349,6 +350,26 @@
   </div>
 </div></section>
 
+<section id="comando"><div class="wrap">
+  <span class="chip">Centro de Comando · 1.3.0</span>
+  <h2>Uma tela para quem opera: o que os agentes fazem agora e o que falta para a meta</h2>
+  <p class="sub">Executivo e tendências são para quem decide. O Centro de Comando é para quem acompanha ao vivo e age na hora. Duas abas: <strong>Agentes</strong> (Agent Control Tower) e <strong>Negócio</strong> (Mission Control).</p>
+  <div class="exec">
+    <div class="grid">
+      <div class="card"><h3>🛰️ Agent Control Tower</h3><p>Semáforo por workflow (ok, atenção, falha, pausado), última execução, próximo disparo agendado, fila de aprovação por idade com SLA de 24 h, falhas e acessos negados, corrente do audit e os últimos eventos.</p></div>
+      <div class="card"><h3>🎛️ Ações sobre os agentes</h3><p>Pausar (o disparo fica no audit e não roda; os outros agendados seguem), retomar, rodar agora, reexecutar e escalar uma aprovação parada. Só o papel <code>operacao</code> e o admin. Operação nunca aprova nem envia.</p></div>
+      <div class="card"><h3>🎯 Mission Control</h3><p>A métrica do canvas contra a meta e quantas conversas faltam (na demo: 42,9%, faltam 4). Fila de decisão: quem está em risco, em que pé está e a próxima ação, com botão para acionar o agente, aprovar ou rejeitar.</p></div>
+      <div class="card"><h3>🔒 Cada clique com o seu papel</h3><p>Botão sem permissão aparece desabilitado com o motivo, e o servidor confere de novo. Toda ação e toda negativa vão para o audit. Reexecutar só refaz o que não exige guardar a entrada da pessoa.</p>
+<pre><span class="k">python3</span> -m agentic_app.demo   <span class="c"># seção 12: pausar, escalar, painel</span>
+<span class="c"># http://127.0.0.1:8765/comando?usuario=otavio</span></pre></div>
+    </div>
+    <div style="display:grid;gap:14px">
+      <figure><img src="assets/comando-agentes.jpg" alt="Aba Agentes do Centro de Comando com semáforo por workflow, próximo disparo e botões de pausar, rodar agora e reexecutar" loading="lazy"><figcaption>Aba Agentes (print real da demo): 6 workflows de operação no verde, próximos disparos e ações por workflow.</figcaption></figure>
+      <figure><img src="assets/comando-negocio.jpg" alt="Aba Negócio do Centro de Comando com a métrica do canvas, quanto falta para a meta e a fila de decisão por pessoa" loading="lazy"><figcaption>Aba Negócio: 42,9% contra a meta de 90%, faltam 4 conversas, e a fila de quem precisa de ação.</figcaption></figure>
+    </div>
+  </div>
+</div></section>
+
 <section id="videos" class="videos"><div class="wrap">
   <span class="chip">Vídeos</span>
   <h2>Veja o framework funcionando</h2>
@@ -375,10 +396,11 @@
 <section id="roadmap"><div class="wrap">
   <span class="chip">Roadmap</span>
   <h2>O que já existe e o que vem depois</h2>
-  <p class="sub">A versão 1.0.0 é o núcleo completo com um app de referência. A 1.1.0 acrescenta o painel executivo e a 1.2.0, o de tendências.</p>
+  <p class="sub">A versão 1.0.0 é o núcleo completo com um app de referência. A 1.1.0 acrescenta o painel executivo a 1.2.0, o de tendências, e a 1.3.0, o Centro de Comando.</p>
   <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Núcleo + Coaching de gestor</strong><span>Motor com 5 tipos de nó, FakeLLM e Ollama local, fila de aprovação, papéis e identidades, audit com hash, 3 tipos de gatilho, política de férias e licença, relatório HTML/PDF, painel web, 48 checks.</span></div></div>
   <div class="phase"><div class="tag">1.1.0</div><div class="d"><strong>Painel executivo</strong><span>Resultado do canvas contra a meta, operação dos agentes, controle e risco, custo de LLM e alertas por regra; papel diretoria; HTML e PDF; 62 checks.</span></div></div>
   <div class="phase"><div class="tag">1.2.0</div><div class="d"><strong>Tendências</strong><span>Histórico semanal com snapshot automático, ritmo por regressão, projeção até a meta, sinais antecipados, comparação entre pessoas e cenários "e se"; papel estratégia; 75 checks.</span></div></div>
+  <div class="phase"><div class="tag">1.3.0</div><div class="d"><strong>Centro de Comando</strong><span>Agent Control Tower (semáforo por workflow, fila por idade com SLA, falhas, eventos) e Mission Control (métrica do canvas, quanto falta, fila de decisão), com ações: pausar, retomar, rodar agora, reexecutar, escalar, acionar, aprovar; papel operação; 93 checks.</span></div></div>
   <div class="phase"><div class="tag">Próximo</div><div class="d"><strong>Mais apps de referência</strong><span>Outros processos usando o mesmo motor, cada um com o seu canvas, suas políticas e seus testes.</span></div></div>
   <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Conectores de produção</strong><span>Exemplos de executor SMTP, login corporativo no painel e leitura de banco no nó de contexto.</span></div></div>
 </div></section>
