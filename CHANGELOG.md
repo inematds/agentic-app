@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.1.0 — 2026-10-15
+
+Painel executivo: a visão de quem patrocina o app.
+
+- `agentic_app/executivo.py`: indicadores de resultado de negócio (métricas do canvas com meta, linha de base e
+  status), operação dos agentes (execuções por workflow e por gatilho, aprovação × edição × rejeição, tempo até
+  aprovar, sugestões aceitas), controle e risco (negados por papel, ferramentas barradas, corrente de hash,
+  % de ações externas com aprovação) e custo de LLM (chamadas por workflow e modelo, tokens estimados, tabela de
+  preço). Alertas executivos de 3 a 5 frases montadas por regra. Saída validada por `executivo.ESQUEMA`.
+- Workflow `painel_executivo` (identidade só leitura `svc-diretoria`), papel `diretoria` (usuária fictícia Dora) e
+  `admin`; colaborador e gestor são negados e auditados.
+- `serve.py`: rota `/executivo` (HTML com gráficos SVG inline) e `/api/executivo` (JSON); link no painel.
+- `relatorio.py`: página executiva em HTML e PDF (`saida/executivo.html`, `saida/executivo.pdf`).
+- `demo.py`: seção 10 imprime o resumo executivo.
+- Audit: cada execução grava `llm = {chamadas por modelo, tokens_estimados}`; `AuditLog.primeira_quebra()` diz
+  em que linha a corrente quebrou. LLMs registram estimativa de tokens (caracteres ÷ 4).
+- `templates/indicadores.json` (métricas, metas, acesso, limiares, custo por modelo); `permissoes.json` com o papel
+  e a identidade novos.
+- Testes: 62 checks (14 novos); `prova_mutacao.sh` continua com 9 trocas.
+- Docs: README PT/EN/ES, ARQUITETURA, PASSO-A-PASSO (passo 11), guia PT/EN/ES com a seção "Painel executivo".
+
 ## 1.0.0 — 2026-10-15
 
 Primeira versão.

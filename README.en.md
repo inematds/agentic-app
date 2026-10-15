@@ -17,9 +17,9 @@ Full guide (landing + step by step): **https://inematds.github.io/agentic-app/gu
 ```bash
 git clone https://github.com/inematds/agentic-app
 cd agentic-app
-bash tests/run.sh                 # 48 checks, no network -> last line OK
-python3 -m agentic_app.demo       # runs the 5 workflows and generates saida/relatorio.html
-python3 -m agentic_app.serve      # panel at http://127.0.0.1:8765
+bash tests/run.sh                 # 62 checks, no network -> last line OK
+python3 -m agentic_app.demo       # runs the 5 workflows, generates saida/relatorio.html and saida/executivo.html
+python3 -m agentic_app.serve      # panel at http://127.0.0.1:8765 (executive: /executivo?usuario=dora)
 ```
 
 Nothing to install beyond Python 3.10+. The default LLM is `FakeLLM` (deterministic). To use a local model:
@@ -53,6 +53,23 @@ Ana is a manager of 12 people (fictional data). The panel has five components, e
 
 A fifth workflow, `convite_1a1`, is called by the background agent's suggestions.
 
+## Executive dashboard (1.1.0)
+
+The view of whoever sponsors the app: **is it delivering the canvas business result, safely, and at what cost?**
+Workflow `painel_executivo` (only the `diretoria` and `admin` roles; employee and manager are denied and audited),
+route `/executivo`, `saida/executivo.html` + `.pdf`. Everything is computed from `audit.jsonl`, the approval queue,
+the outbox and the app data by `agentic_app/executivo.py`, with schema-validated output:
+
+| Block | What it shows (demo numbers) |
+|---|---|
+| Business result | canvas metric: 42.9% of overdue goals discussed within 7 days (target 90%, baseline 30%); goals completed 31.2%; average engagement 76.7; 6 people at risk |
+| Agent operations | 9 runs (click 7, schedule 1, event 1); drafts: 1 approved with edits, 1 rejected, 6 pending; 1 of 10 suggestions accepted |
+| Control and risk | access denied per role, tools blocked by least scope, hash chain intact or broken, 100% of external actions approved |
+| LLM cost | 27 calls per model and per workflow, estimated tokens, cost from the `templates/indicadores.json` table (default 0) |
+| Alerts | 3 to 5 sentences built by rules, not by an LLM |
+
+![Executive dashboard](guia/assets/executivo.jpg)
+
 ## Repository map
 
 | Path | What it is |
@@ -65,10 +82,11 @@ A fifth workflow, `convite_1a1`, is called by the background agent's suggestions
 | `agentic_app/gatilhos.py` | manual, scheduled, event |
 | `agentic_app/policies/` | encoded policies (fictional HR manual) |
 | `agentic_app/apps/coaching/` | reference app: data, JSON workflows, functions |
-| `templates/` | canvas, workflow template, policy template + test, permissions matrix |
-| `docs/PASSO-A-PASSO.md` | from zero to rollout in a company (10 steps + checklist) — in Portuguese |
+| `agentic_app/executivo.py` | executive dashboard: result, operations, control and cost indicators + rule-based alerts |
+| `templates/` | canvas, workflow template, policy template + test, permissions matrix, executive dashboard indicators |
+| `docs/PASSO-A-PASSO.md` | from zero to rollout in a company (11 steps + checklist) — in Portuguese |
 | `docs/ARQUITETURA.md` | how the pieces fit together — in Portuguese |
-| `tests/` | `run.sh` (48 checks, no network) e `prova_mutacao.sh` |
+| `tests/` | `run.sh` (62 checks, no network) and `prova_mutacao.sh` |
 
 ## Where it fits
 

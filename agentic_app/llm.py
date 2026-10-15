@@ -38,10 +38,12 @@ class LLM:
     nome = "base"
 
     def __init__(self):
-        self.chamadas = []  # (modo, modelo) — para auditoria e testes
+        self.chamadas = []  # {modo, modelo, tokens_estimados} — para auditoria, custo e testes
 
-    def _registra(self, modo, modelo):
-        self.chamadas.append({"modo": modo, "modelo": modelo})
+    def _registra(self, modo, modelo, entrada="", saida=""):
+        """Guarda a chamada. Tokens são ESTIMATIVA (caracteres / 4); adaptador com contagem real sobrescreve."""
+        tokens = (len(str(entrada)) + len(str(saida)) + 3) // 4
+        self.chamadas.append({"modo": modo, "modelo": modelo, "tokens_estimados": tokens})
 
     # Cada modo devolve tipos simples (str / dict) para o nó de formatação validar.
     def classificar(self, texto, rotulos, dicas, modelo):
@@ -60,7 +62,12 @@ class FakeLLM(LLM):
     nome = "fake"
 
     def classificar(self, texto, rotulos, dicas, modelo):
-        self._registra("classificar", modelo)
+        r = self._classificar(texto, rotulos, dicas)
+        self._registra("classificar", modelo, texto, r)
+        return r
+
+    @staticmethod
+    def _classificar(texto, rotulos, dicas):
         t = normalizar(texto)
         for rotulo in rotulos:
             for palavra in (dicas or {}).get(rotulo, []):
@@ -69,12 +76,13 @@ class FakeLLM(LLM):
         return rotulos[-1]  # último rótulo = "outro"
 
     def redigir(self, modelo_texto, dados, instrucao, modelo):
-        self._registra("redigir", modelo)
-        return preencher(modelo_texto, dados).strip()
+        r = preencher(modelo_texto, dados).strip()
+        self._registra("redigir", modelo, instrucao + modelo_texto, r)
+        return r
 
     def escolher_ferramenta(self, pergunta, ferramentas, modelo):
         """Escolhe a ferramenta cujo nome/descrição mais casa com a pergunta."""
-        self._registra("escolher_ferramenta", modelo)
+        self._registra("escolher_ferramenta", modelo, pergunta + " ".join(ferramentas))
         q = set(normalizar(pergunta).replace("?", " ").split())
         melhor, pontos = None, -1
         for nome, func in ferramentas.items():
@@ -108,7 +116,7 @@ class OllamaLLM(LLM):
             return json.loads(r.read())["response"].strip()
 
     def classificar(self, texto, rotulos, dicas, modelo):
-        self._registra("classificar", modelo)
+        self._registra("classificar", modelo, texto)
         try:
             r = normalizar(self._gerar(
                 f"Classifique a pergunta em UM destes rótulos: {', '.join(rotulos)}.\n"
@@ -121,7 +129,7 @@ class OllamaLLM(LLM):
         return self.reserva.classificar(texto, rotulos, dicas, modelo)
 
     def redigir(self, modelo_texto, dados, instrucao, modelo):
-        self._registra("redigir", modelo)
+        self._registra("redigir", modelo, instrucao + modelo_texto)
         base = preencher(modelo_texto, dados)
         try:
             return self._gerar(f"{instrucao}\nReescreva em português claro, mantendo os fatos:\n{base}", modelo)
@@ -129,7 +137,7 @@ class OllamaLLM(LLM):
             return base.strip()
 
     def escolher_ferramenta(self, pergunta, ferramentas, modelo):
-        self._registra("escolher_ferramenta", modelo)
+        self._registra("escolher_ferramenta", modelo, pergunta)
         try:
             lista = "\n".join(f"- {n}: {(f.__doc__ or '').strip()}" for n, f in ferramentas.items())
             r = self._gerar(f"Ferramentas:\n{lista}\nQual ferramenta responde: {pergunta}\n"

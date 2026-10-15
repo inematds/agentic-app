@@ -17,9 +17,9 @@ Guia completo (landing + passo a passo): **https://inematds.github.io/agentic-ap
 ```bash
 git clone https://github.com/inematds/agentic-app
 cd agentic-app
-bash tests/run.sh                 # 48 checks, sem rede -> última linha OK
-python3 -m agentic_app.demo       # roda os 5 workflows e gera saida/relatorio.html
-python3 -m agentic_app.serve      # painel em http://127.0.0.1:8765
+bash tests/run.sh                 # 62 checks, sem rede -> última linha OK
+python3 -m agentic_app.demo       # roda os 5 workflows, gera saida/relatorio.html e saida/executivo.html
+python3 -m agentic_app.serve      # painel em http://127.0.0.1:8765 (executivo: /executivo?usuario=dora)
 ```
 
 Nada para instalar além do Python 3.10+. O LLM padrão é o `FakeLLM` (determinístico). Para usar um modelo local:
@@ -53,6 +53,23 @@ Ana é gestora de 12 pessoas (dados fictícios). O painel tem cinco componentes,
 
 Um quinto workflow, `convite_1a1`, é chamado pelas sugestões do agente de fundo.
 
+## Painel executivo (1.1.0)
+
+A visão de quem patrocina o app: **está entregando o resultado do canvas, com segurança e a que custo?**
+Workflow `painel_executivo` (só papéis `diretoria` e `admin`; colaborador e gestor são negados e auditados),
+rota `/executivo`, `saida/executivo.html` + `.pdf`. Tudo calculado do `audit.jsonl`, da fila, da caixa de saída e
+dos dados do app, por `agentic_app/executivo.py`, com saída validada por esquema:
+
+| Bloco | O que mostra (números da demo) |
+|---|---|
+| Resultado de negócio | métrica do canvas: 42,9% das metas vencidas com conversa em até 7 dias (meta 90%, base 30%); metas concluídas 31,2%; engajamento médio 76,7; 6 pessoas em risco |
+| Operação dos agentes | 9 execuções (clique 7, horário 1, evento 1); rascunhos 1 aprovado com edição, 1 rejeitado, 6 pendentes; 1 de 10 sugestões aceitas |
+| Controle e risco | acessos negados por papel, ferramentas barradas pelo escopo mínimo, corrente de hash íntegra ou quebrada, 100% das ações externas com aprovação |
+| Custo de LLM | 27 chamadas por modelo e por workflow, tokens estimados, custo pela tabela de `templates/indicadores.json` (padrão 0) |
+| Alertas | 3 a 5 frases montadas por regra, não por LLM |
+
+![Painel executivo](guia/assets/executivo.jpg)
+
 ## Mapa do repositório
 
 | Caminho | O que é |
@@ -65,10 +82,11 @@ Um quinto workflow, `convite_1a1`, é chamado pelas sugestões do agente de fund
 | `agentic_app/gatilhos.py` | manual, agendado, evento |
 | `agentic_app/policies/` | políticas codificadas (manual fictício de RH) |
 | `agentic_app/apps/coaching/` | app de referência: dados, workflows JSON, funções |
-| `templates/` | canvas, modelo de workflow, modelo de política + teste, matriz de permissões |
-| `docs/PASSO-A-PASSO.md` | do zero à implantação numa empresa (10 passos + checklist) |
+| `agentic_app/executivo.py` | painel executivo: indicadores de resultado, operação, controle e custo + alertas por regra |
+| `templates/` | canvas, modelo de workflow, modelo de política + teste, matriz de permissões, indicadores do painel executivo |
+| `docs/PASSO-A-PASSO.md` | do zero à implantação numa empresa (11 passos + checklist) |
 | `docs/ARQUITETURA.md` | como as peças se encaixam |
-| `tests/` | `run.sh` (48 checks sem rede) e `prova_mutacao.sh` |
+| `tests/` | `run.sh` (62 checks sem rede) e `prova_mutacao.sh` |
 
 ## Onde ele se encaixa
 

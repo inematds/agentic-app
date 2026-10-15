@@ -4,18 +4,22 @@
     "gestor": "lidera pessoas; vê e age sobre a própria equipe",
     "rh": "time de pessoas; vê perfis e políticas",
     "colaborador": "vê só o próprio perfil",
-    "sistema": "agendador e eventos; nunca aprova nada"
+    "sistema": "agendador e eventos; nunca aprova nada",
+    "diretoria": "patrocina o app; vê o painel executivo (resultado, controle, custo); não executa workflows da equipe",
+    "admin": "administra o app; também vê o painel executivo"
   },
   "identidades": {
     "svc-coaching": {"escopos": ["equipe.ler"], "nota": "não lê dados de RH"},
-    "svc-rh": {"escopos": ["rh.perfil.ler", "rh.faq.ler"], "nota": "não lê metas da equipe"}
+    "svc-rh": {"escopos": ["rh.perfil.ler", "rh.faq.ler"], "nota": "não lê metas da equipe"},
+    "svc-diretoria": {"escopos": ["equipe.ler", "audit.ler", "aprovacoes.ler"], "nota": "só leitura: números da equipe, audit e fila"}
   },
   "workflows": [
     {"workflow": "followup_metas", "executar": ["gestor", "sistema"], "identidade": "svc-coaching", "aprova_acoes": ["gestor", "rh"]},
     {"workflow": "convite_1a1", "executar": ["gestor"], "identidade": "svc-coaching", "aprova_acoes": ["gestor"]},
     {"workflow": "proximos_passos", "executar": ["sistema", "gestor"], "identidade": "svc-coaching", "aprova_acoes": []},
     {"workflow": "assistente_rh", "executar": ["colaborador", "gestor", "rh", "sistema"], "identidade": "svc-rh", "aprova_acoes": ["gestor", "rh"]},
-    {"workflow": "relatorio_equipe", "executar": ["gestor", "rh", "sistema"], "identidade": "svc-coaching", "aprova_acoes": []}
+    {"workflow": "relatorio_equipe", "executar": ["gestor", "rh", "sistema"], "identidade": "svc-coaching", "aprova_acoes": []},
+    {"workflow": "painel_executivo", "executar": ["diretoria", "admin"], "identidade": "svc-diretoria", "aprova_acoes": []}
   ],
   "aprovadores": {"enviar_email": ["gestor", "rh"]}
 }

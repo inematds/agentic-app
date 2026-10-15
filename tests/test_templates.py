@@ -3,6 +3,7 @@ import json
 import pathlib
 import unittest
 
+from agentic_app import config
 from agentic_app.workflow import carregar_spec
 
 T = pathlib.Path(__file__).resolve().parent.parent / "templates"
@@ -21,6 +22,18 @@ class TestTemplates(unittest.TestCase):
             spec = json.loads((wdir / f"{linha['workflow']}.json").read_text(encoding="utf-8"))
             self.assertEqual(spec["seguranca"]["executar"], linha["executar"], linha["workflow"])
             self.assertEqual(spec["seguranca"]["identidade"], linha["identidade"], linha["workflow"])
+
+    def test_indicadores_modelo_tem_o_mesmo_formato_do_app(self):
+        t = json.loads((T / "indicadores.json").read_text(encoding="utf-8"))
+        app = json.loads((T.parent / "agentic_app/apps/coaching/data/indicadores.json").read_text(encoding="utf-8"))
+        chaves = {"acesso", "metrica_principal", "metricas", "limiares", "custo_por_modelo"}
+        self.assertLessEqual(chaves, set(t))
+        self.assertLessEqual(chaves, set(app))
+        self.assertIn(t["metrica_principal"], [m["id"] for m in t["metricas"]])
+        for m in t["metricas"] + app["metricas"]:
+            self.assertLessEqual({"id", "nome", "unidade", "meta", "sentido"}, set(m))
+            self.assertIn(m["sentido"], ("maior", "menor"))
+        self.assertEqual(set(t["custo_por_modelo"]["modelos"]), set(config.MODELOS_PADRAO.values()))
 
     def test_politica_modelo_passa_nos_proprios_testes(self):
         suite = unittest.defaultTestLoader.discover(str(T), pattern="test_politica_modelo.py", top_level_dir=str(T))

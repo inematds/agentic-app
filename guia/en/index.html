@@ -108,6 +108,11 @@
   th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);font-size:.92rem;vertical-align:top}
   th{font-family:Sora;font-size:.8rem;color:var(--mut);background:var(--bg2)}
   tr:last-child td{border-bottom:none}
+  .exec{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start}
+  @media(max-width:860px){.exec{grid-template-columns:1fr}}
+  .exec figure{margin:0;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+  .exec figure img{width:100%;display:block}
+  .exec figcaption{padding:12px 14px;font-size:.88rem;color:var(--mut);background:var(--card)}
   .videos .vazio{border:1px dashed var(--line);border-radius:14px;padding:28px;color:var(--mut);text-align:center}
   footer{padding:46px 0;text-align:center;color:var(--mut);font-size:.9rem}
   .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:.3em .8em;font-size:.78rem;color:var(--mut);margin:0 4px}
@@ -127,6 +132,7 @@
     <a class="sec" href="#oque">What it is</a>
     <a class="sec" href="#pilares">Pillars</a>
     <a class="sec" href="#guia">Usage guide</a>
+    <a class="sec" href="#executivo">Executive</a>
     <a class="sec" href="#videos">Videos</a>
     <a class="sec" href="#encaixe">Where it fits</a>
     <span class="lang"><a href="../">PT</a><a class="on" href="./">EN</a><a href="../es/">ES</a></span>
@@ -227,10 +233,10 @@
 
   <div class="step"><div class="b">1</div><div>
     <h3>Download and run the tests</h3>
-    <p>48 checks, no network. The last line must be OK.</p>
+    <p>62 checks, no network. The last line must be OK.</p>
 <pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
 <span class="k">cd</span> agentic-app
-<span class="k">bash</span> tests/run.sh          <span class="c"># 48 checks, 0 failures → OK</span></pre>
+<span class="k">bash</span> tests/run.sh          <span class="c"># 62 checks, 0 failures → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
@@ -304,6 +310,26 @@
   </table></div>
 </div></section>
 
+<section id="executivo"><div class="wrap">
+  <span class="chip">Executive dashboard · 1.1.0</span>
+  <h2>The board view: is it delivering, safely, and at what cost?</h2>
+  <p class="sub">The manager panel is the working screen. The executive dashboard answers whoever sponsors the app, with numbers computed from the audit log, the approval queue, the outbox and the app data. No number comes from an LLM.</p>
+  <div class="exec">
+    <figure><img src="../assets/executivo.jpg" alt="Executive dashboard with alerts, canvas metric against target, agent operations, control and LLM cost" loading="lazy"><figcaption>Real demo screenshot: 42.9% of overdue goals were discussed within 7 days (target 90%, baseline 30%), 9 runs, 100% of external actions approved, 27 LLM calls.</figcaption></figure>
+    <div class="grid">
+      <div class="card"><h3>🎯 Business result</h3><p>The canvas metric against target and baseline, with a "met" or "not met" status. In the demo: goals completed 31.2%, average engagement 76.7 and 6 people at risk.</p></div>
+      <div class="card"><h3>⚙️ Agent operations</h3><p>Runs per workflow and per trigger (click 7, schedule 1, event 1), drafts approved, edited and rejected, time to approve and background-agent suggestions accepted (1 of 10).</p></div>
+      <div class="card"><h3>🛡️ Control and risk</h3><p>Access denied per role, tools blocked by least scope, hash chain intact or broken (with the line) and the % of external actions with approval, which must be 100%.</p></div>
+      <div class="card"><h3>💰 LLM cost</h3><p>Calls per workflow and per model (FakeLLM counts the same), estimated tokens and cost from the <code>templates/indicadores.json</code> table, which ships at zero.</p></div>
+      <div class="card"><h3>🚨 Rule-based alerts</h3><p>3 to 5 short sentences built by code, ordered critical → attention → ok. A broken chain or an unapproved email goes to the top.</p></div>
+      <div class="card"><h3>🔒 Board and admin only</h3><p>The dashboard is the <code>painel_executivo</code> workflow, with a read-only identity. Employee and manager get 403, and the attempt becomes a <code>workflow.negado</code> line in the audit.</p>
+<pre><span class="k">python3</span> -m agentic_app.demo   <span class="c"># section 10: executive summary</span>
+<span class="k">python3</span> -m agentic_app.serve
+<span class="c"># http://127.0.0.1:8765/executivo?usuario=dora</span></pre></div>
+    </div>
+  </div>
+</div></section>
+
 <section id="videos" class="videos"><div class="wrap">
   <span class="chip">Videos</span>
   <h2>See the framework in action</h2>
@@ -330,8 +356,9 @@
 <section id="roadmap"><div class="wrap">
   <span class="chip">Roadmap</span>
   <h2>What exists and what comes next</h2>
-  <p class="sub">Version 1.0.0 is the complete core with one reference app.</p>
+  <p class="sub">Version 1.0.0 is the complete core with one reference app. 1.1.0 adds the executive dashboard.</p>
   <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Core + Manager coaching</strong><span>Engine with 5 node types, FakeLLM and local Ollama, approval queue, roles and identities, hashed audit, 3 trigger types, vacation and leave policy, HTML/PDF report, web panel, 48 checks.</span></div></div>
+  <div class="phase"><div class="tag">1.1.0</div><div class="d"><strong>Executive dashboard</strong><span>Canvas result against target, agent operations, control and risk, LLM cost and rule-based alerts; board role; HTML and PDF; 62 checks.</span></div></div>
   <div class="phase"><div class="tag">Next</div><div class="d"><strong>More reference apps</strong><span>Other processes using the same engine, each with its own canvas, policies and tests.</span></div></div>
   <div class="phase"><div class="tag">Later</div><div class="d"><strong>Production connectors</strong><span>Examples of an SMTP executor, corporate login on the panel and database reads in the context node.</span></div></div>
 </div></section>

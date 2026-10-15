@@ -67,14 +67,25 @@ class AuditLog:
             return []
         return [json.loads(l) for l in self.arquivo.read_text(encoding="utf-8").splitlines() if l.strip()]
 
-    def verificar_corrente(self) -> bool:
+    def primeira_quebra(self) -> int:
+        """Número (1, 2, ...) da primeira linha adulterada ou fora da corrente; 0 = corrente íntegra."""
         anterior = "0" * 16
-        for linha in self.ler():
-            h = linha.pop("hash")
-            if linha["hash_anterior"] != anterior:
-                return False
+        if not self.arquivo.exists():
+            return 0
+        brutas = [l for l in self.arquivo.read_text(encoding="utf-8").splitlines() if l.strip()]
+        for n, texto in enumerate(brutas, 1):
+            try:
+                linha = json.loads(texto)
+                h = linha.pop("hash")
+            except (ValueError, KeyError):
+                return n
+            if linha.get("hash_anterior") != anterior:
+                return n
             bruto = json.dumps(linha, ensure_ascii=False, sort_keys=True)
             if hashlib.sha256(bruto.encode()).hexdigest()[:16] != h:
-                return False
+                return n
             anterior = h
-        return True
+        return 0
+
+    def verificar_corrente(self) -> bool:
+        return self.primeira_quebra() == 0

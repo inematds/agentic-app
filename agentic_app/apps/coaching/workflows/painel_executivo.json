@@ -1,0 +1,19 @@
+{
+  "id": "painel_executivo",
+  "versao": 1,
+  "titulo": "Painel executivo (diretoria)",
+  "resultado_de_negocio": "Mostra a quem patrocina o app se ele entrega a métrica do canvas, com controle e a que custo.",
+  "seguranca": {"executar": ["diretoria", "admin"], "identidade": "svc-diretoria"},
+  "gatilhos": [{"tipo": "manual", "componente": "aba_executivo"}],
+  "entrada": {"type": "object", "additionalProperties": false},
+  "nos": [
+    {"id": "ctx", "tipo": "contexto", "carregar": "equipe"},
+    {"id": "registros", "tipo": "contexto", "carregar": "registros_operacao"},
+    {"id": "aprovacoes", "tipo": "contexto", "carregar": "aprovacoes"},
+    {"id": "indicadores", "tipo": "codigo", "funcao": "indicadores_executivos",
+     "args": {"equipe": "$ctx", "registros": "$registros", "aprovacoes": "$aprovacoes"}},
+    {"id": "saida", "tipo": "formatacao", "saida": "$indicadores",
+     "esquema": {"type": "object", "required": ["negocio", "operacao", "controle", "custo", "alertas"]},
+     "artefato": {"tipo": "executivo", "html": "executivo.html", "pdf": "executivo.pdf"}}
+  ]
+}

@@ -77,6 +77,25 @@ use um nó de formatação com `artefato` (HTML/PDF) em vez de devolver texto co
 3. Só então troque o LLM (subclasse de `LLM`), conecte o executor real e abra para mais equipes.
 4. Cada mudança de política = nova versão (`VERSAO_POLITICA`) + teste novo + registro no CHANGELOG.
 
+## Passo 11 — Medir o resultado com o painel executivo
+
+Quem patrocina o app (diretoria) não quer a tela operacional; quer saber se a métrica do canvas está andando,
+com controle e a que custo.
+
+1. Copie `templates/indicadores.json` para a pasta `data/` do seu app. Em `metricas`, ponha as métricas do canvas
+   com `meta`, `linha_base` e `sentido` (`maior` ou `menor`); em `metrica_principal`, a métrica de sucesso; em
+   `regra_principal`, como ela é contada, em uma frase.
+2. Escreva no app uma função que devolva `{id: {"valor": x, "serie": [...]}}` para cada métrica (no exemplo,
+   `metricas_negocio` em `apps/coaching/app.py`). Número vem dos dados e da fila, nunca do LLM.
+3. Preencha `custo_por_modelo` com o preço por chamada e por 1.000 tokens de cada modelo (0 = modelo local).
+4. Dê o papel `diretoria` (ou `admin`) a quem patrocina e mantenha o workflow `painel_executivo` com identidade
+   só de leitura (`equipe.ler`, `audit.ler`, `aprovacoes.ler`).
+5. Abra `/executivo` (ou rode a demo: `saida/executivo.html` e `.pdf`). Leia os alertas primeiro: corrente de hash
+   quebrada ou ação externa sem aprovação são incidentes, não números ruins.
+
+**Deu certo quando:** a diretoria responde "está entregando?" olhando só essa página, e quem tem papel de
+colaborador ou gestor recebe 403 com uma linha `workflow.negado` no audit.
+
 ## Checklist de implantação
 
 - [ ] Canvas preenchido, com métrica, linha de base e dono
@@ -92,3 +111,4 @@ use um nó de formatação com `artefato` (HTML/PDF) em vez de devolver texto co
 - [ ] Perguntas abertas marcadas como não críticas (FAQ/busca), separadas das políticas
 - [ ] `bash tests/run.sh` verde no CI antes de cada deploy
 - [ ] Piloto medido contra a linha de base antes de ampliar
+- [ ] `indicadores.json` com metas do canvas e preços por modelo; painel executivo só para diretoria/admin

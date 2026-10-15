@@ -108,6 +108,11 @@
   th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);font-size:.92rem;vertical-align:top}
   th{font-family:Sora;font-size:.8rem;color:var(--mut);background:var(--bg2)}
   tr:last-child td{border-bottom:none}
+  .exec{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start}
+  @media(max-width:860px){.exec{grid-template-columns:1fr}}
+  .exec figure{margin:0;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+  .exec figure img{width:100%;display:block}
+  .exec figcaption{padding:12px 14px;font-size:.88rem;color:var(--mut);background:var(--card)}
   .videos .vazio{border:1px dashed var(--line);border-radius:14px;padding:28px;color:var(--mut);text-align:center}
   footer{padding:46px 0;text-align:center;color:var(--mut);font-size:.9rem}
   .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:.3em .8em;font-size:.78rem;color:var(--mut);margin:0 4px}
@@ -127,6 +132,7 @@
     <a class="sec" href="#oque">Qué es</a>
     <a class="sec" href="#pilares">Pilares</a>
     <a class="sec" href="#guia">Guía de uso</a>
+    <a class="sec" href="#executivo">Ejecutivo</a>
     <a class="sec" href="#videos">Videos</a>
     <a class="sec" href="#encaixe">Dónde encaja</a>
     <span class="lang"><a href="../">PT</a><a href="../en/">EN</a><a class="on" href="./">ES</a></span>
@@ -227,10 +233,10 @@
 
   <div class="step"><div class="b">1</div><div>
     <h3>Descarga y ejecuta las pruebas</h3>
-    <p>48 checks, sin red. La última línea tiene que ser OK.</p>
+    <p>62 checks, sin red. La última línea tiene que ser OK.</p>
 <pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
 <span class="k">cd</span> agentic-app
-<span class="k">bash</span> tests/run.sh          <span class="c"># 48 checks, 0 fallas → OK</span></pre>
+<span class="k">bash</span> tests/run.sh          <span class="c"># 62 checks, 0 fallas → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
@@ -304,6 +310,26 @@
   </table></div>
 </div></section>
 
+<section id="executivo"><div class="wrap">
+  <span class="chip">Panel ejecutivo · 1.1.0</span>
+  <h2>La vista de la dirección: ¿está entregando, con seguridad y a qué costo?</h2>
+  <p class="sub">El panel del gerente es la pantalla de trabajo. El panel ejecutivo le responde a quien patrocina la app, con números calculados del audit log, la cola de aprobación, la bandeja de salida y los datos de la app. Ningún número viene de un LLM.</p>
+  <div class="exec">
+    <figure><img src="../assets/executivo.jpg" alt="Panel ejecutivo con alertas, métrica del canvas contra la meta, operación de los agentes, control y costo de LLM" loading="lazy"><figcaption>Captura real de la demo: el 42,9% de las metas vencidas tuvo conversación en hasta 7 días (meta 90%, base 30%), 9 ejecuciones, 100% de las acciones externas con aprobación, 27 llamadas de LLM.</figcaption></figure>
+    <div class="grid">
+      <div class="card"><h3>🎯 Resultado de negocio</h3><p>La métrica del canvas contra la meta y la línea de base, con estado "alcanzó" o "no alcanzó". En la demo: metas concluidas 31,2%, compromiso medio 76,7 y 6 personas en riesgo.</p></div>
+      <div class="card"><h3>⚙️ Operación de los agentes</h3><p>Ejecuciones por workflow y por disparador (clic 7, horario 1, evento 1), borradores aprobados, editados y rechazados, tiempo hasta aprobar y sugerencias del agente de fondo aceptadas (1 de 10).</p></div>
+      <div class="card"><h3>🛡️ Control y riesgo</h3><p>Accesos negados por rol, herramientas bloqueadas por alcance mínimo, cadena de hash íntegra o rota (con la línea) y el % de acciones externas con aprobación, que tiene que ser 100%.</p></div>
+      <div class="card"><h3>💰 Costo de LLM</h3><p>Llamadas por workflow y por modelo (el FakeLLM cuenta igual), tokens estimados y costo según la tabla de <code>templates/indicadores.json</code>, que viene en cero.</p></div>
+      <div class="card"><h3>🚨 Alertas por regla</h3><p>De 3 a 5 frases cortas armadas por código, en el orden crítico → atención → ok. Una cadena rota o un e-mail sin aprobación suben al principio.</p></div>
+      <div class="card"><h3>🔒 Solo dirección y admin</h3><p>El panel es el workflow <code>painel_executivo</code>, con identidad de solo lectura. Colaborador y gerente reciben 403, y el intento se vuelve una línea <code>workflow.negado</code> en el audit.</p>
+<pre><span class="k">python3</span> -m agentic_app.demo   <span class="c"># sección 10: resumen ejecutivo</span>
+<span class="k">python3</span> -m agentic_app.serve
+<span class="c"># http://127.0.0.1:8765/executivo?usuario=dora</span></pre></div>
+    </div>
+  </div>
+</div></section>
+
 <section id="videos" class="videos"><div class="wrap">
   <span class="chip">Videos</span>
   <h2>Mira el framework en acción</h2>
@@ -330,8 +356,9 @@
 <section id="roadmap"><div class="wrap">
   <span class="chip">Roadmap</span>
   <h2>Lo que ya existe y lo que viene después</h2>
-  <p class="sub">La versión 1.0.0 es el núcleo completo con una app de referencia.</p>
+  <p class="sub">La versión 1.0.0 es el núcleo completo con una app de referencia. La 1.1.0 agrega el panel ejecutivo.</p>
   <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Núcleo + Coaching para gerentes</strong><span>Motor con 5 tipos de nodo, FakeLLM y Ollama local, cola de aprobación, roles e identidades, audit con hash, 3 tipos de disparador, política de vacaciones y licencia, informe HTML/PDF, panel web, 48 checks.</span></div></div>
+  <div class="phase"><div class="tag">1.1.0</div><div class="d"><strong>Panel ejecutivo</strong><span>Resultado del canvas contra la meta, operación de los agentes, control y riesgo, costo de LLM y alertas por regla; rol dirección; HTML y PDF; 62 checks.</span></div></div>
   <div class="phase"><div class="tag">Próximo</div><div class="d"><strong>Más apps de referencia</strong><span>Otros procesos usando el mismo motor, cada uno con su canvas, sus políticas y sus pruebas.</span></div></div>
   <div class="phase"><div class="tag">Después</div><div class="d"><strong>Conectores de producción</strong><span>Ejemplos de ejecutor SMTP, inicio de sesión corporativo en el panel y lectura de base de datos en el nodo de contexto.</span></div></div>
 </div></section>

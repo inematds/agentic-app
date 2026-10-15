@@ -53,6 +53,7 @@ marcadas como `critica: false`.
 |---|---|---|
 | `svc-coaching` | `equipe.ler` | followup_metas, convite_1a1, proximos_passos, relatorio_equipe |
 | `svc-rh` | `rh.perfil.ler`, `rh.faq.ler` | assistente_rh |
+| `svc-diretoria` | `equipe.ler`, `audit.ler`, `aprovacoes.ler` (só leitura) | painel_executivo |
 
 O audit grava as duas coisas: **quem pediu** (`usuario`, `papeis`) e **como o workflow agiu** (`identidade`).
 
@@ -65,6 +66,35 @@ O audit grava as duas coisas: **quem pediu** (`usuario`, `papeis`) e **como o wo
 | `caixa_saida.jsonl` | e-mails "enviados" (simulado; troque pelo SMTP da empresa) |
 | `sugestoes.json` | última rodada do agente de fundo |
 | `relatorio.html`, `relatorio.pdf` | saída visual do `relatorio_equipe` |
+| `executivo.html`, `executivo.pdf` | saída do `painel_executivo` (servida só pela rota `/executivo`, com RBAC) |
+
+## Painel executivo (1.1.0)
+
+```
+ audit.jsonl ─┐  aprovacoes.json ─┐  caixa_saida.jsonl ─┐  sugestoes.json ─┐  dados do app ─┐
+              ▼                   ▼                     ▼                 ▼                ▼
+   contexto registros_operacao (audit.ler)   contexto aprovacoes (aprovacoes.ler)   contexto equipe (equipe.ler)
+                                   └──────────────┬──────────────┘
+                     código indicadores_executivos → executivo.calcular(...)  (valida executivo.ESQUEMA)
+                                                  ▼
+                     formatação + artefato → executivo.html / executivo.pdf ; rota /executivo
+```
+
+- Acesso: `seguranca.executar = ["diretoria", "admin"]` no workflow e `acesso` em `indicadores.json` (um teste
+  confere que batem). Qualquer outro papel → `PermissaoNegada` + linha `workflow.negado`.
+- **Resultado de negócio**: o app entrega `{id: {valor, serie}}` (`metricas_negocio`); meta, linha de base e sentido
+  vêm de `indicadores.json`; `atingiu` é só comparação.
+- **Operação**: execuções `ok` por workflow e por gatilho (`manual`/`sugestao:` = clique, `agendado:` = horário,
+  `evento:` = evento); desfecho dos rascunhos pela fila; tempo até aprovação = `ts` da execução que propôs →
+  `ts` de `acao.executada`; sugestões aceitas = execuções com gatilho `sugestao:`. Leituras listadas em
+  `ignorar_workflows` (o próprio painel) não contam.
+- **Controle**: `workflow.negado` + `acao.negada` por papel; execuções negadas com "ferramenta fora do escopo";
+  `AuditLog.primeira_quebra()` (0 = íntegra); ações externas = linhas da caixa de saída, cada uma precisa de
+  `acao.executada` com aprovador no audit e item `executada` na fila.
+- **Custo**: desde 1.1.0 cada linha `workflow.executado` grava `llm = {chamadas: {modelo: n}, tokens_estimados}`
+  contando as chamadas reais ao adaptador (o `FakeLLM` conta igual). Tokens = caracteres ÷ 4 quando o adaptador não
+  informa. Custo = chamadas × `por_chamada` + tokens/1000 × `por_1k_tokens`.
+- **Alertas**: regras fixas em `executivo.alertas`, ordenadas por nível (crítico → atenção → ok), no máximo 5.
 
 ## Trocar o LLM
 

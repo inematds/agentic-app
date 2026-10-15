@@ -17,12 +17,12 @@ import re
 from datetime import date
 from pathlib import Path
 
-from ... import config
+from ... import config, executivo
 from ...acoes import CaixaSaida, FilaAprovacao
 from ...gatilhos import Gatilhos
 from ...llm import normalizar
 from ...policies import grupos_de_ferramentas
-from ...relatorio import gerar_artefatos
+from ...relatorio import gerar_artefatos, gerar_executivo
 from ...seguranca import AuditLog, Identidade, PermissaoNegada, Usuario
 from ...workflow import Motor, Registro
 
@@ -130,6 +130,36 @@ def agregar_equipe(equipe: dict) -> dict:
     }
 
 
+def metricas_negocio(equipe: dict, fila: list, regra: dict) -> dict:
+    """Números do canvas (pilar 1) para o painel executivo. Regra da métrica principal em indicadores.json."""
+    hoje = _data(equipe["data_referencia"])
+    pessoas = [resumo_pessoa(p, hoje) for p in equipe["liderados"]]
+    contatados = {i.get("payload_final", i["payload"]).get("para") for i in fila
+                  if i["status"] == "executada" and i["workflow"] in regra["workflows"]}
+    vencidas = cobertas = 0
+    for p in pessoas:
+        vencidas += p["atrasadas"]
+        if p["atrasadas"] and (p["dias_sem_1a1"] <= regra["dias"] or p["email"] in contatados):
+            cobertas += p["atrasadas"]
+    metas = [m for p in equipe["liderados"] for m in p["metas"]]
+    concl = sum(1 for m in metas if m["progresso"] >= 100)
+    semanas = len(equipe["liderados"][0]["engajamento"])
+    serie_eng = [round(sum(p["engajamento"][i] for p in equipe["liderados"]) / len(equipe["liderados"]), 1)
+                 for i in range(semanas)]
+    rot = [f"sem -{semanas - 1 - i}" if i < semanas - 1 else "atual" for i in range(semanas)]
+    risco = [p for p in pessoas if p["status"] != "em_dia"]
+    pct_conv = round(100 * cobertas / vencidas, 1) if vencidas else 100.0
+    return {
+        "conversa_7d": {"valor": pct_conv, "detalhe": f"{cobertas} de {vencidas} metas vencidas"},
+        "metas_concluidas": {"valor": round(100 * concl / len(metas), 1), "detalhe": f"{concl} de {len(metas)} metas"},
+        "engajamento_medio": {"valor": serie_eng[-1], "serie": serie_eng, "rotulos": rot,
+                              "detalhe": f"média de {len(pessoas)} pessoas nas últimas {semanas} semanas"},
+        "pessoas_em_risco": {"valor": len(risco),
+                             "detalhe": f"{sum(1 for p in risco if p['status'] == 'atrasado')} com meta vencida, "
+                                        f"{sum(1 for p in risco if p['status'] == 'atencao')} em atenção"},
+    }
+
+
 def extrair_dados_pedido(pergunta: str, perfil: dict) -> dict:
     """Código, não LLM: tira da pergunta os números que a política precisa."""
     q = normalizar(pergunta)
@@ -216,11 +246,41 @@ class AppCoaching:
         def _ctx_faq(args):
             return _ler("faq.json")
 
+        indicadores = _ler("indicadores.json")
+        self.indicadores = indicadores
+        pasta = self.pasta
+
+        @reg.contexto("registros_operacao", escopo="audit.ler")
+        def _ctx_registros(args):
+            linhas, arq = [], pasta / "audit.jsonl"
+            if arq.exists():
+                for texto in arq.read_text(encoding="utf-8").splitlines():
+                    try:
+                        linhas.append(json.loads(texto))
+                    except ValueError:
+                        pass  # linha corrompida: a corrente acusa em quebra_na_linha
+            return {"audit": linhas, "quebra_na_linha": self.audit.primeira_quebra(),
+                    "enviados": self.caixa.enviados()}
+
+        @reg.contexto("aprovacoes", escopo="aprovacoes.ler")
+        def _ctx_aprovacoes(args):
+            arq = pasta / "sugestoes.json"
+            sug = json.loads(arq.read_text(encoding="utf-8")) if arq.exists() else []
+            return {"fila": json.loads(json.dumps(self.fila.itens)), "sugestoes": sug}
+
+        @reg.funcao("indicadores_executivos")
+        def _indicadores(equipe, registros, aprovacoes):
+            return executivo.calcular(
+                metricas_negocio(equipe, aprovacoes["fila"], indicadores["regra_conversa"]),
+                registros["audit"], aprovacoes["fila"], registros["enviados"], aprovacoes["sugestoes"],
+                indicadores, registros["quebra_na_linha"], equipe["data_referencia"])
+
         for f in (metas_atrasadas, detectar_sinais, pegar_liderado, agregar_equipe,
                   extrair_dados_pedido, explicar_resultado, buscar_faq):
             reg.funcoes[f.__name__] = f
         reg.ferramentas.update(grupos_de_ferramentas())
         reg.artefatos["relatorio"] = gerar_artefatos
+        reg.artefatos["executivo"] = gerar_executivo
         self.registro = reg
         self.motor = Motor(reg, self.audit, self.fila, llm=llm)
         for arq in sorted(WORKFLOWS.glob("*.json")):
@@ -235,6 +295,10 @@ class AppCoaching:
     def painel(self) -> dict:
         """Componente 'painel de engajamento': dados direto, sem LLM."""
         return agregar_equipe(self.equipe)
+
+    def executivo(self, usuario, gatilho="manual"):
+        """Aba 'painel executivo': workflow painel_executivo (só diretoria/admin; negado = auditado)."""
+        return self.motor.executar("painel_executivo", {}, usuario, gatilho=gatilho)
 
     def guardar_sugestoes(self, resultado):
         self.sugestoes = resultado["saida"]["sugestoes"]

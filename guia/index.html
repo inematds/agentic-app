@@ -108,6 +108,11 @@
   th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);font-size:.92rem;vertical-align:top}
   th{font-family:Sora;font-size:.8rem;color:var(--mut);background:var(--bg2)}
   tr:last-child td{border-bottom:none}
+  .exec{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start}
+  @media(max-width:860px){.exec{grid-template-columns:1fr}}
+  .exec figure{margin:0;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+  .exec figure img{width:100%;display:block}
+  .exec figcaption{padding:12px 14px;font-size:.88rem;color:var(--mut);background:var(--card)}
   .videos .vazio{border:1px dashed var(--line);border-radius:14px;padding:28px;color:var(--mut);text-align:center}
   footer{padding:46px 0;text-align:center;color:var(--mut);font-size:.9rem}
   .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:.3em .8em;font-size:.78rem;color:var(--mut);margin:0 4px}
@@ -127,6 +132,7 @@
     <a class="sec" href="#oque">O que é</a>
     <a class="sec" href="#pilares">Pilares</a>
     <a class="sec" href="#guia">Guia de uso</a>
+    <a class="sec" href="#executivo">Executivo</a>
     <a class="sec" href="#videos">Vídeos</a>
     <a class="sec" href="#encaixe">Onde se encaixa</a>
     <span class="lang"><a class="on" href="./">PT</a><a href="en/">EN</a><a href="es/">ES</a></span>
@@ -227,10 +233,10 @@
 
   <div class="step"><div class="b">1</div><div>
     <h3>Baixe e rode os testes</h3>
-    <p>48 checks, sem rede. A última linha tem que ser OK.</p>
+    <p>62 checks, sem rede. A última linha tem que ser OK.</p>
 <pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
 <span class="k">cd</span> agentic-app
-<span class="k">bash</span> tests/run.sh          <span class="c"># 48 checks, 0 falhas → OK</span></pre>
+<span class="k">bash</span> tests/run.sh          <span class="c"># 62 checks, 0 falhas → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
@@ -304,6 +310,26 @@
   </table></div>
 </div></section>
 
+<section id="executivo"><div class="wrap">
+  <span class="chip">Painel executivo · 1.1.0</span>
+  <h2>A visão da diretoria: está entregando, com segurança e a que custo?</h2>
+  <p class="sub">O painel do gestor é a tela de trabalho. O painel executivo responde a quem patrocina o app, com números calculados do audit log, da fila de aprovações, da caixa de saída e dos dados do app. Nenhum número vem de LLM.</p>
+  <div class="exec">
+    <figure><img src="assets/executivo.jpg" alt="Painel executivo com alertas, métrica do canvas contra a meta, operação dos agentes, controle e custo de LLM" loading="lazy"><figcaption>Print real da demo: 42,9% das metas vencidas tiveram conversa em até 7 dias (meta 90%, base 30%), 9 execuções, 100% das ações externas com aprovação, 27 chamadas de LLM.</figcaption></figure>
+    <div class="grid">
+      <div class="card"><h3>🎯 Resultado de negócio</h3><p>A métrica do canvas contra a meta e a linha de base, com status "atingiu" ou "não atingiu". Na demo: metas concluídas 31,2%, engajamento médio 76,7 e 6 pessoas em risco.</p></div>
+      <div class="card"><h3>⚙️ Operação dos agentes</h3><p>Execuções por workflow e por gatilho (clique 7, horário 1, evento 1), rascunhos aprovados, editados e rejeitados, tempo até aprovar e sugestões do agente de fundo aceitas (1 de 10).</p></div>
+      <div class="card"><h3>🛡️ Controle e risco</h3><p>Acessos negados por papel, ferramentas barradas pelo escopo mínimo, corrente de hash íntegra ou quebrada (com a linha) e a % de ações externas com aprovação, que tem que ser 100%.</p></div>
+      <div class="card"><h3>💰 Custo de LLM</h3><p>Chamadas por workflow e por modelo (o FakeLLM conta igual), tokens estimados e custo pela tabela de <code>templates/indicadores.json</code>, que vem zerada.</p></div>
+      <div class="card"><h3>🚨 Alertas por regra</h3><p>De 3 a 5 frases curtas montadas por código, na ordem crítico → atenção → ok. Corrente quebrada ou e-mail sem aprovação sobem para o topo.</p></div>
+      <div class="card"><h3>🔒 Só diretoria e admin</h3><p>O painel é o workflow <code>painel_executivo</code>, com identidade só de leitura. Colaborador e gestor recebem 403, e a tentativa vira uma linha <code>workflow.negado</code> no audit.</p>
+<pre><span class="k">python3</span> -m agentic_app.demo   <span class="c"># seção 10: resumo executivo</span>
+<span class="k">python3</span> -m agentic_app.serve
+<span class="c"># http://127.0.0.1:8765/executivo?usuario=dora</span></pre></div>
+    </div>
+  </div>
+</div></section>
+
 <section id="videos" class="videos"><div class="wrap">
   <span class="chip">Vídeos</span>
   <h2>Veja o framework funcionando</h2>
@@ -330,8 +356,9 @@
 <section id="roadmap"><div class="wrap">
   <span class="chip">Roadmap</span>
   <h2>O que já existe e o que vem depois</h2>
-  <p class="sub">A versão 1.0.0 é o núcleo completo com um app de referência.</p>
+  <p class="sub">A versão 1.0.0 é o núcleo completo com um app de referência. A 1.1.0 acrescenta o painel executivo.</p>
   <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Núcleo + Coaching de gestor</strong><span>Motor com 5 tipos de nó, FakeLLM e Ollama local, fila de aprovação, papéis e identidades, audit com hash, 3 tipos de gatilho, política de férias e licença, relatório HTML/PDF, painel web, 48 checks.</span></div></div>
+  <div class="phase"><div class="tag">1.1.0</div><div class="d"><strong>Painel executivo</strong><span>Resultado do canvas contra a meta, operação dos agentes, controle e risco, custo de LLM e alertas por regra; papel diretoria; HTML e PDF; 62 checks.</span></div></div>
   <div class="phase"><div class="tag">Próximo</div><div class="d"><strong>Mais apps de referência</strong><span>Outros processos usando o mesmo motor, cada um com o seu canvas, suas políticas e seus testes.</span></div></div>
   <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Conectores de produção</strong><span>Exemplos de executor SMTP, login corporativo no painel e leitura de banco no nó de contexto.</span></div></div>
 </div></section>

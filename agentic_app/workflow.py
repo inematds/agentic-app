@@ -132,6 +132,7 @@ class Motor:
         if identidade is None:
             raise ErroWorkflow(f"identidade não registrada: {seg['identidade']}")
 
+        n_chamadas = len(self.llm.chamadas)
         estado = {"entrada": entrada, "usuario": {"id": usuario.id, "nome": usuario.nome, "papeis": list(usuario.papeis)}}
         trilha, propostas = [], []
         try:
@@ -174,9 +175,15 @@ class Motor:
         except Exception as e:  # noqa: BLE001 — erro vira linha de auditoria, depois sobe
             status, erro = "erro", f"{type(e).__name__}: {e}"
 
+        chamadas = self.llm.chamadas[n_chamadas:]
+        por_modelo = {}
+        for c in chamadas:
+            por_modelo[c["modelo"]] = por_modelo.get(c["modelo"], 0) + 1
         self.audit.registrar("workflow.executado", **base, status=status, erro=erro,
                              nos=[p["no"] for p in trilha], propostas=[p["id"] for p in propostas],
-                             modelos=[p["modelo"] for p in trilha if "modelo" in p])
+                             modelos=[p["modelo"] for p in trilha if "modelo" in p],
+                             llm={"chamadas": por_modelo,
+                                  "tokens_estimados": sum(c.get("tokens_estimados", 0) for c in chamadas)})
         if status == "negado":
             raise PermissaoNegada(erro)
         if status == "erro":

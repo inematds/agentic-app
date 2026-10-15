@@ -8,6 +8,7 @@ from datetime import datetime
 
 from . import __version__, config
 from .apps.coaching import montar
+from .executivo import resumo_texto
 from .seguranca import PermissaoNegada
 
 
@@ -89,7 +90,18 @@ def main():
           f"{len({l['workflow'] for l in execs})} workflows · corrente de hash íntegra: {app.audit.verificar_corrente()}")
     print(f"e-mails enviados (simulado): {len(app.caixa.enviados())} em {pasta}/caixa_saida.jsonl · "
           f"aguardando aprovação: {len(app.fila.pendentes())}")
-    print("\nPainel web: python3 -m agentic_app.serve  ->  http://127.0.0.1:8765")
+    titulo("10. Painel executivo (diretoria): resultado, controle e custo")
+    try:
+        app.executivo(bruno)
+    except PermissaoNegada as e:
+        print(f"negado e auditado: {e}")
+    rex = app.executivo(app.usuario("dora"))
+    for linha in resumo_texto(rex["saida"]):
+        print(linha)
+    print("gerados:", ", ".join(f"{pasta}/{a}" for a in rex["saida"]["artefatos"]))
+
+    print("\nPainel web: python3 -m agentic_app.serve  ->  http://127.0.0.1:8765  "
+          "(executivo: http://127.0.0.1:8765/executivo?usuario=dora)")
 
 
 if __name__ == "__main__":
