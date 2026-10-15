@@ -17,7 +17,7 @@ determinístico, humano aprova ações, política em código testado, audit por 
 ## Mapa rápido
 
 `agentic_app/workflow.py` motor · `llm.py` adaptadores · `acoes.py` aprovação · `seguranca.py` RBAC/identidade/audit ·
-`gatilhos.py` manual/agendado/evento · `relatorio.py` HTML/PDF · `executivo.py` painel executivo · `apps/coaching/` app de referência ·
+`gatilhos.py` manual/agendado/evento · `relatorio.py` HTML/PDF · `executivo.py` painel executivo · `tendencias.py` tendências · `apps/coaching/` app de referência ·
 `templates/` para a empresa adaptar · `docs/` passo a passo e arquitetura · `guia/` página PT/EN/ES.
 
 ## Self-learning

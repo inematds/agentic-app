@@ -17,7 +17,7 @@ Full guide (landing + step by step): **https://inematds.github.io/agentic-app/gu
 ```bash
 git clone https://github.com/inematds/agentic-app
 cd agentic-app
-bash tests/run.sh                 # 62 checks, no network -> last line OK
+bash tests/run.sh                 # 75 checks, no network -> last line OK
 python3 -m agentic_app.demo       # runs the 5 workflows, generates saida/relatorio.html and saida/executivo.html
 python3 -m agentic_app.serve      # panel at http://127.0.0.1:8765 (executive: /executivo?usuario=dora)
 ```
@@ -70,6 +70,25 @@ the outbox and the app data by `agentic_app/executivo.py`, with schema-validated
 
 ![Executive dashboard](guia/assets/executivo.jpg)
 
+## Trends (1.2.0)
+
+The executive dashboard answers "is it delivering now?". The trends dashboard answers **"where is it heading?"**.
+Workflow `painel_tendencias` (roles `estrategia`, `diretoria`, `admin`), route `/tendencias`,
+`saida/tendencias.html` + `.pdf`, computed by `agentic_app/tendencias.py` with no external library:
+
+- **History**: 12 example weeks (fictional, labeled) + the real weekly snapshot written by the `snapshot_indicadores`
+  workflow every Monday 07:00. In a company, the history builds itself.
+- **Analysis**: week and period change, 4-week moving average, pace by simple linear regression and projection to the
+  target. In the demo: coverage of overdue goals grows 1.3 p.p. a week and would only reach 90% on 01/07/2027, so it
+  is not reached by 31/12/2026; engagement is still on target but leaves it on 02/12/2026.
+- **Early signals**: average engagement falling for 8 weeks; 4 people with 3 drops in a row.
+- **What if**: with 5 one-on-ones a week coverage becomes 76.2% and the 90% target arrives on 28/12/2026 (an explicit
+  rule in code, not a forecast).
+- With fewer than 4 weeks it says "histórico insuficiente" (not enough history) instead of projecting. The LLM only
+  stitches the narrative.
+
+![Trends dashboard](guia/assets/tendencias.jpg)
+
 ## Repository map
 
 | Path | What it is |
@@ -83,10 +102,11 @@ the outbox and the app data by `agentic_app/executivo.py`, with schema-validated
 | `agentic_app/policies/` | encoded policies (fictional HR manual) |
 | `agentic_app/apps/coaching/` | reference app: data, JSON workflows, functions |
 | `agentic_app/executivo.py` | executive dashboard: result, operations, control and cost indicators + rule-based alerts |
-| `templates/` | canvas, workflow template, policy template + test, permissions matrix, executive dashboard indicators |
-| `docs/PASSO-A-PASSO.md` | from zero to rollout in a company (11 steps + checklist) — in Portuguese |
+| `agentic_app/tendencias.py` | trends dashboard: weekly history, pace, projection, signals and scenarios |
+| `templates/` | canvas, workflow template, policy template + test, permissions matrix, executive indicators, trends |
+| `docs/PASSO-A-PASSO.md` | from zero to rollout in a company (12 steps + checklist) — in Portuguese |
 | `docs/ARQUITETURA.md` | how the pieces fit together — in Portuguese |
-| `tests/` | `run.sh` (62 checks, no network) and `prova_mutacao.sh` |
+| `tests/` | `run.sh` (75 checks, no network) and `prova_mutacao.sh` |
 
 ## Where it fits
 

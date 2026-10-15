@@ -17,7 +17,7 @@ Guía completa (landing + paso a paso): **https://inematds.github.io/agentic-app
 ```bash
 git clone https://github.com/inematds/agentic-app
 cd agentic-app
-bash tests/run.sh                 # 62 checks, sin red -> última línea OK
+bash tests/run.sh                 # 75 checks, sin red -> última línea OK
 python3 -m agentic_app.demo       # corre los 5 workflows, genera saida/relatorio.html y saida/executivo.html
 python3 -m agentic_app.serve      # panel en http://127.0.0.1:8765 (ejecutivo: /executivo?usuario=dora)
 ```
@@ -70,6 +70,26 @@ bandeja de salida y los datos de la app con `agentic_app/executivo.py`, con sali
 
 ![Panel ejecutivo](guia/assets/executivo.jpg)
 
+## Tendencias (1.2.0)
+
+El panel ejecutivo responde "¿está entregando ahora?". El de tendencias responde **"¿hacia dónde va?"**.
+Workflow `painel_tendencias` (roles `estrategia`, `diretoria`, `admin`), ruta `/tendencias`,
+`saida/tendencias.html` + `.pdf`, calculado por `agentic_app/tendencias.py`, sin biblioteca externa:
+
+- **Historial**: 12 semanas de ejemplo (ficticio, rotulado) + la foto semanal real que graba el workflow
+  `snapshot_indicadores` cada lunes 07:00. En una empresa, el historial se forma solo.
+- **Análisis**: variación en la semana y en el período, media móvil de 4 semanas, ritmo por regresión lineal y
+  proyección hasta la meta. En la demo: la cobertura de metas vencidas sube 1,3 p.p. por semana y solo llegaría a 90%
+  el 01/07/2027, o sea, no se alcanza hasta el 31/12/2026; el compromiso sigue en la meta, pero sale de ella el
+  02/12/2026.
+- **Señales anticipadas**: compromiso medio cayendo hace 8 semanas; 4 personas con 3 caídas seguidas.
+- **¿Y si?**: con 5 conversaciones 1:1 por semana la cobertura pasa a 76,2% y la meta de 90% llega el 28/12/2026
+  (regla explícita en el código, no pronóstico).
+- Con menos de 4 semanas dice "histórico insuficiente" (historial insuficiente) en vez de proyectar. El LLM solo
+  hilvana la narrativa.
+
+![Panel de tendencias](guia/assets/tendencias.jpg)
+
 ## Mapa del repositorio
 
 | Ruta | Qué es |
@@ -83,10 +103,11 @@ bandeja de salida y los datos de la app con `agentic_app/executivo.py`, con sali
 | `agentic_app/policies/` | políticas codificadas (manual ficticio de RR. HH.) |
 | `agentic_app/apps/coaching/` | app de referencia: datos, workflows JSON, funciones |
 | `agentic_app/executivo.py` | panel ejecutivo: indicadores de resultado, operación, control y costo + alertas por regla |
-| `templates/` | canvas, modelo de workflow, modelo de política + prueba, matriz de permisos, indicadores del panel ejecutivo |
-| `docs/PASSO-A-PASSO.md` | del cero a la implementación en una empresa (11 pasos + checklist), en portugués |
+| `agentic_app/tendencias.py` | panel de tendencias: historial semanal, ritmo, proyección, señales y escenarios |
+| `templates/` | canvas, modelo de workflow, modelo de política + prueba, matriz de permisos, indicadores del ejecutivo, tendencias |
+| `docs/PASSO-A-PASSO.md` | del cero a la implementación en una empresa (12 pasos + checklist), en portugués |
 | `docs/ARQUITETURA.md` | cómo encajan las piezas, en portugués |
-| `tests/` | `run.sh` (62 checks sin red) y `prova_mutacao.sh` |
+| `tests/` | `run.sh` (75 checks sin red) y `prova_mutacao.sh` |
 
 ## Dónde encaja
 

@@ -17,7 +17,7 @@ Guia completo (landing + passo a passo): **https://inematds.github.io/agentic-ap
 ```bash
 git clone https://github.com/inematds/agentic-app
 cd agentic-app
-bash tests/run.sh                 # 62 checks, sem rede -> última linha OK
+bash tests/run.sh                 # 75 checks, sem rede -> última linha OK
 python3 -m agentic_app.demo       # roda os 5 workflows, gera saida/relatorio.html e saida/executivo.html
 python3 -m agentic_app.serve      # painel em http://127.0.0.1:8765 (executivo: /executivo?usuario=dora)
 ```
@@ -70,6 +70,24 @@ dos dados do app, por `agentic_app/executivo.py`, com saída validada por esquem
 
 ![Painel executivo](guia/assets/executivo.jpg)
 
+## Tendências (1.2.0)
+
+O executivo responde "está entregando agora?". O painel de tendências responde **"para onde está indo?"**.
+Workflow `painel_tendencias` (papéis `estrategia`, `diretoria`, `admin`), rota `/tendencias`,
+`saida/tendencias.html` + `.pdf`, calculado por `agentic_app/tendencias.py`, sem biblioteca externa:
+
+- **Histórico**: 12 semanas de exemplo (fictício, rotulado) + o snapshot semanal real gravado pelo workflow
+  `snapshot_indicadores` toda segunda 07:00. Numa empresa, o histórico se forma sozinho.
+- **Análise**: variação na semana e no período, média móvel de 4 semanas, ritmo por regressão linear e projeção até
+  a meta. Na demo: a cobertura de metas vencidas sobe 1,3 p.p. por semana e só chegaria a 90% em 01/07/2027, ou seja,
+  não é atingida até 31/12/2026; o engajamento ainda está na meta, mas sai dela em 02/12/2026.
+- **Sinais antecipados**: engajamento médio caindo há 8 semanas; 4 pessoas com 3 quedas seguidas.
+- **E se**: com 5 conversas 1:1 por semana a cobertura vira 76,2% e a meta de 90% chega em 28/12/2026 (regra
+  explícita no código, não previsão).
+- Com menos de 4 semanas o painel diz "histórico insuficiente" em vez de projetar. O LLM só costura a narrativa.
+
+![Painel de tendências](guia/assets/tendencias.jpg)
+
 ## Mapa do repositório
 
 | Caminho | O que é |
@@ -83,10 +101,11 @@ dos dados do app, por `agentic_app/executivo.py`, com saída validada por esquem
 | `agentic_app/policies/` | políticas codificadas (manual fictício de RH) |
 | `agentic_app/apps/coaching/` | app de referência: dados, workflows JSON, funções |
 | `agentic_app/executivo.py` | painel executivo: indicadores de resultado, operação, controle e custo + alertas por regra |
-| `templates/` | canvas, modelo de workflow, modelo de política + teste, matriz de permissões, indicadores do painel executivo |
-| `docs/PASSO-A-PASSO.md` | do zero à implantação numa empresa (11 passos + checklist) |
+| `agentic_app/tendencias.py` | painel de tendências: histórico semanal, ritmo, projeção, sinais e cenários |
+| `templates/` | canvas, modelo de workflow, modelo de política + teste, matriz de permissões, indicadores do executivo, tendências |
+| `docs/PASSO-A-PASSO.md` | do zero à implantação numa empresa (12 passos + checklist) |
 | `docs/ARQUITETURA.md` | como as peças se encaixam |
-| `tests/` | `run.sh` (62 checks sem rede) e `prova_mutacao.sh` |
+| `tests/` | `run.sh` (75 checks sem rede) e `prova_mutacao.sh` |
 
 ## Onde ele se encaixa
 

@@ -42,6 +42,7 @@ code{font-family:"JetBrains Mono",monospace;font-size:.8rem}
   <b>Coaching de gestor</b><span class="mut">app de referência do agentic-app · dados fictícios · LLM local/fake</span>
   <span style="flex:1"></span>
   <a id="lnkExec" class="mut" href="/executivo" target="_blank" rel="noopener" style="color:var(--amb)">Painel executivo</a>
+  <a id="lnkTend" class="mut" href="/tendencias" target="_blank" rel="noopener" style="color:var(--amb)">Tendências</a>
   <label class="mut" for="quem">Entrar como</label>
   <select id="quem"></select>
 </header>
@@ -120,6 +121,8 @@ async function carregar() {
   $("#quem").innerHTML = E.usuarios.map(u => `<option value="${u.id}" ${u.id===uid?"selected":""}>${esc(u.nome)} (${u.papeis.join(", ")})</option>`).join("");
   $("#lnkExec").href = `/executivo?usuario=${encodeURIComponent(uid)}`;
   $("#lnkExec").title = "Só diretoria e admin. Outros papéis são negados e auditados.";
+  $("#lnkTend").href = `/tendencias?usuario=${encodeURIComponent(uid)}`;
+  $("#lnkTend").title = "Estratégia, diretoria e admin. Outros papéis são negados e auditados.";
   const p = E.painel;
   $("#equipe").innerHTML = `<tr><th>Pessoa</th><th>Metas</th><th>Engajamento</th><th>Último 1:1</th><th>Situação</th></tr>` +
     p.pessoas.map(x => `<tr><td><b>${esc(x.nome)}</b><br><span class="sub">${esc(x.cargo)}</span></td>

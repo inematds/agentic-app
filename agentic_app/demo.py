@@ -9,6 +9,7 @@ from datetime import datetime
 from . import __version__, config
 from .apps.coaching import montar
 from .executivo import resumo_texto
+from .tendencias import resumo_texto as resumo_tendencias
 from .seguranca import PermissaoNegada
 
 
@@ -18,7 +19,7 @@ def titulo(t):
 
 def main():
     pasta = config.pasta_saida()
-    for arq in ("audit.jsonl", "caixa_saida.jsonl", "aprovacoes.json", "sugestoes.json"):
+    for arq in ("audit.jsonl", "caixa_saida.jsonl", "aprovacoes.json", "sugestoes.json", "historico.jsonl"):
         (pasta / arq).unlink(missing_ok=True)
     app = montar(pasta)
     ana, bruno, sistema = app.usuario("ana"), app.usuario("bruno"), app.usuario("sistema")
@@ -100,8 +101,22 @@ def main():
         print(linha)
     print("gerados:", ", ".join(f"{pasta}/{a}" for a in rex["saida"]["artefatos"]))
 
+    titulo("11. Tendências (estratégia): para onde os números estão indo")
+    [snap] = app.gatilhos.tick(datetime(2026, 10, 19, 7, 0))
+    print(f"snapshot semanal (segunda 07:00, {snap['run_id']}): semana {snap['saida']['semana']} gravada em "
+          f"{pasta}/historico.jsonl")
+    try:
+        app.tendencias(bruno)
+    except PermissaoNegada as e:
+        print(f"negado e auditado: {e}")
+    rt = app.tendencias(app.usuario("estela"))
+    for linha in resumo_tendencias(rt["saida"]):
+        print(linha)
+    print("Narrativa (LLM só costura frases com números do código):\n  " + rt["saida"]["narrativa"])
+    print("gerados:", ", ".join(f"{pasta}/{a}" for a in rt["saida"]["artefatos"]))
+
     print("\nPainel web: python3 -m agentic_app.serve  ->  http://127.0.0.1:8765  "
-          "(executivo: http://127.0.0.1:8765/executivo?usuario=dora)")
+          "(executivo: /executivo?usuario=dora · tendências: /tendencias?usuario=estela)")
 
 
 if __name__ == "__main__":

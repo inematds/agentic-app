@@ -1,0 +1,20 @@
+{
+  "id": "snapshot_indicadores",
+  "versao": 1,
+  "titulo": "Snapshot semanal dos indicadores",
+  "resultado_de_negocio": "Grava a foto da semana para que o histórico de tendências se forme sozinho.",
+  "seguranca": {"executar": ["sistema", "diretoria", "admin"], "identidade": "svc-diretoria"},
+  "gatilhos": [{"tipo": "agendado", "dia_semana": "seg", "hora": "07:00", "usuario": "sistema", "entrada": {}}],
+  "entrada": {"type": "object", "additionalProperties": false},
+  "nos": [
+    {"id": "ctx", "tipo": "contexto", "carregar": "equipe"},
+    {"id": "registros", "tipo": "contexto", "carregar": "registros_operacao"},
+    {"id": "aprovacoes", "tipo": "contexto", "carregar": "aprovacoes"},
+    {"id": "indicadores", "tipo": "codigo", "funcao": "indicadores_executivos",
+     "args": {"equipe": "$ctx", "registros": "$registros", "aprovacoes": "$aprovacoes"}},
+    {"id": "linha", "tipo": "codigo", "funcao": "linha_snapshot", "args": {"executivo": "$indicadores", "equipe": "$ctx"}},
+    {"id": "saida", "tipo": "formatacao", "saida": "$linha",
+     "esquema": {"type": "object", "required": ["semana", "conversa_7d", "execucoes", "chamadas_llm"]},
+     "artefato": {"tipo": "snapshot", "arquivo": "historico.jsonl"}}
+  ]
+}

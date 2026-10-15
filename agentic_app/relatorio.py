@@ -393,3 +393,199 @@ def gerar_executivo(dados: dict, pasta: Path, art: dict) -> list:
         (pasta / art["pdf"]).write_bytes(render_executivo_pdf(dados))
         arquivos.append(art["pdf"])
     return arquivos
+
+
+# ====================================================================== painel de tendências
+STATUS_ROT = {"atingida": "na meta", "atinge": "atinge", "nao_atinge": "não atinge", "rompe": "sai da meta",
+              "mantem": "na meta, piorando", "sem_meta": "acompanhar", "insuficiente": "histórico insuficiente"}
+STATUS_COR = {"atingida": "var(--ok)", "atinge": "var(--ok)", "nao_atinge": "var(--warn)", "rompe": "var(--warn)",
+              "mantem": "var(--warn)", "sem_meta": "var(--mut)", "insuficiente": "var(--mut)"}
+GRUPO_ROT = {"resultado": "Resultado de negócio", "adocao": "Adoção dos agentes", "custo": "Custo e uso de LLM",
+             "risco": "Eventos de risco"}
+
+
+def _grafico_linha(m, semanas, horizonte_fim, largura=380, altura=170):
+    """Linha da série + média móvel (tracejada fina) + meta + projeção no ritmo atual até o horizonte."""
+    from datetime import date
+    serie = m["serie"]
+    if len(serie) < 2:
+        return '<p class="mut">Histórico insuficiente para desenhar.</p>'
+    d0 = date.fromisoformat(semanas[0])
+    xs = [(date.fromisoformat(s) - d0).days / 7 for s in semanas[-len(serie):]]
+    proj = []
+    if m["projecao"]["status"] != "insuficiente" and m["sentido"] != "neutro":
+        fim = (date.fromisoformat(horizonte_fim) - d0).days / 7
+        proj = [(xs[-1], serie[-1]), (fim, serie[-1] + m["ritmo_semana"] * (fim - xs[-1]))]
+    xmax = max([xs[-1]] + [p[0] for p in proj])
+    vals = serie + m["media_movel"] + [p[1] for p in proj] + ([m["meta"]] if "meta" in m else [])
+    lo, hi = min(vals), max(vals)
+    if m["unidade"] == "%":
+        lo, hi = max(0, lo), min(100, hi) if hi <= 100 else hi
+    folga = (hi - lo) * 0.12 or 1
+    lo, hi = lo - folga, hi + folga
+    esq, dir_, topo, base = 44, largura - 12, 14, altura - 30
+    X = lambda x: esq + (dir_ - esq) * x / (xmax or 1)  # noqa: E731
+    Y = lambda y: base - (base - topo) * (y - lo) / (hi - lo)  # noqa: E731
+    pts = " ".join(f"{X(x):.1f},{Y(y):.1f}" for x, y in zip(xs, serie))
+    mm = " ".join(f"{X(x):.1f},{Y(y):.1f}" for x, y in zip(xs, m["media_movel"]))
+    partes = [f'<line x1="{esq}" x2="{dir_}" y1="{base}" y2="{base}" stroke="var(--line)"/>']
+    for v in (lo + folga, hi - folga):
+        partes.append(f'<text x="{esq - 6}" y="{Y(v) + 4:.1f}" text-anchor="end" class="sv mut">{_f(round(v, 1))}</text>'
+                      f'<line x1="{esq}" x2="{dir_}" y1="{Y(v):.1f}" y2="{Y(v):.1f}" stroke="var(--line)" stroke-dasharray="2 4"/>')
+    if "meta" in m:
+        partes.append(f'<line x1="{esq}" x2="{dir_}" y1="{Y(m["meta"]):.1f}" y2="{Y(m["meta"]):.1f}" stroke="var(--ok)" '
+                      f'stroke-width="1.5" stroke-dasharray="6 4"/>'
+                      f'<text x="{dir_}" y="{Y(m["meta"]) - 5:.1f}" text-anchor="end" class="sv b" fill="var(--ok)">'
+                      f'meta {_f(m["meta"])}</text>')
+    if proj:
+        (x1, y1), (x2, y2) = proj
+        partes.append(f'<line x1="{X(x1):.1f}" y1="{Y(y1):.1f}" x2="{X(x2):.1f}" y2="{Y(y2):.1f}" stroke="var(--warn)" '
+                      f'stroke-width="2" stroke-dasharray="5 4"/>'
+                      f'<text x="{X(x2):.1f}" y="{base + 22}" text-anchor="end" class="sv mut">{_e(horizonte_fim[8:10])}/'
+                      f'{_e(horizonte_fim[5:7])}</text>')
+    partes.append(f'<polyline points="{mm}" fill="none" stroke="var(--mut)" stroke-width="1.5" stroke-dasharray="3 3"/>')
+    partes.append(f'<polyline points="{pts}" fill="none" stroke="var(--amb)" stroke-width="2.5"/>')
+    partes.append(f'<circle cx="{X(xs[-1]):.1f}" cy="{Y(serie[-1]):.1f}" r="4" fill="var(--amb)"/>'
+                  f'<text x="{X(xs[-1]):.1f}" y="{Y(serie[-1]) - 9:.1f}" text-anchor="middle" class="sv b">{_f(serie[-1])}</text>')
+    for i in (0, len(semanas) - 1):
+        s = semanas[i]
+        partes.append(f'<text x="{X(xs[i] if i < len(xs) else xs[-1]):.1f}" y="{base + 22}" '
+                      f'text-anchor="{"start" if i == 0 else "end" if not proj else "middle"}" class="sv mut">{s[8:10]}/{s[5:7]}</text>')
+    rot = f'{m["nome"]}: série {", ".join(_f(v) for v in serie)}'
+    return f'<svg viewBox="0 0 {largura} {altura}" width="100%" role="img" aria-label="{_e(rot)}">{"".join(partes)}</svg>'
+
+
+def render_tendencias_html(d: dict) -> str:
+    sinais = "".join(f'<li><span class="tag" style="border-color:{NIVEL_COR[s["nivel"]]};color:{NIVEL_COR[s["nivel"]]}">'
+                     f'{NIVEL_ROT[s["nivel"]]}</span> {_e(s["texto"])}</li>' for s in d["sinais"]) \
+        or '<li>Nenhum sinal antecipado.</li>'
+    blocos = []
+    for grupo in ("resultado", "adocao", "custo", "risco"):
+        ms = [m for m in d["metricas"] if m["grupo"] == grupo]
+        if not ms:
+            continue
+        cards = "".join(
+            f'<div class="kpi"><span>{_e(m["nome"])}</span>'
+            f'<b>{_f(m["ultimo"])}<small> {_e(m["unidade"])}</small></b>'
+            f'<em>semana {m["var_semana"]:+g} · período {m["var_periodo"]:+g} · ritmo {m["ritmo_semana"]:+g}/sem · '
+            f'<span class="tag" style="border-color:{STATUS_COR[m["projecao"]["status"]]};'
+            f'color:{STATUS_COR[m["projecao"]["status"]]}">{STATUS_ROT[m["projecao"]["status"]]}</span></em>'
+            f'{_grafico_linha(m, d["semanas"], d["horizonte_fim"])}'
+            f'<small>{_e(m["projecao"]["texto"])}</small></div>' for m in ms)
+        blocos.append(f'<section class="card largo"><h2>{GRUPO_ROT[grupo]}</h2><div class="kpis">{cards}</div></section>')
+    cen = "".join(f'<tr><td>{_e(c["descricao"])}</td><td>{_f(c.get("valor_hoje", 0))}% → <b>{_f(c.get("valor_cenario", 0))}%</b></td>'
+                  f'<td>{_e(c.get("projecao", {}).get("texto", c["texto"]))}</td></tr>' for c in d["cenarios"])
+    pessoas = "".join(
+        f'<tr><td>{_e(p["nome"])}</td><td>{" → ".join(_f(v) for v in p["serie"])}</td><td>{p["ritmo"]:+g}/sem</td>'
+        f'<td>{"<b>" + str(p["quedas_seguidas"]) + " quedas seguidas</b>" if p["quedas_seguidas"] >= 3 else p["quedas_seguidas"]}</td></tr>'
+        for p in d["pessoas"][:6])
+    aviso = ('<p class="aviso">Inclui histórico de EXEMPLO (fictício) para mostrar as tendências. Na empresa, o '
+             'snapshot semanal de segunda 07:00 forma o histórico real.</p>') if d["exemplo"] else ""
+    return f"""<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tendências — {_e(d['data_referencia'])}</title>
+<style>
+:root{{--bg:#0c0c10;--card:#16161e;--line:#272730;--txt:#e9e9ee;--mut:#9a9aa6;--amb:#FACC15;
+--ok:#4ade80;--warn:#f59e0b;--bad:#f87171}}
+@media (prefers-color-scheme: light){{:root{{--bg:#f6f7f9;--card:#fff;--line:#e1e3ea;--txt:#1a1a22;--mut:#5b5b68;
+--amb:#a16207;--ok:#15803d;--warn:#b45309;--bad:#b91c1c}}}}
+@media print{{:root{{--bg:#fff;--card:#fff;--line:#ddd;--txt:#111;--mut:#555;--amb:#854d0e;--ok:#15803d;--warn:#b45309;--bad:#b91c1c}}}}
+*{{box-sizing:border-box}}
+body{{margin:0;background:var(--bg);color:var(--txt);font:15px/1.5 Inter,system-ui,sans-serif}}
+main{{max-width:1120px;margin:0 auto;padding:28px 16px}}
+h1{{font-family:Sora,system-ui,sans-serif;margin:.2em 0 .1em;font-size:clamp(1.5rem,3.4vw,2.1rem)}}
+h2{{font-family:Sora,system-ui,sans-serif;font-size:1.05rem;margin:0 0 10px}}
+.chip{{color:var(--amb);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700}}
+.mut{{color:var(--mut)}} small{{color:var(--mut)}}
+.grade{{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:14px}}
+.card{{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}}
+.largo{{grid-column:1/-1}}
+.lista{{list-style:none;margin:0;padding:0}} .lista li{{padding:7px 0;border-bottom:1px solid var(--line)}}
+.lista li:last-child{{border:none}}
+.tag{{border:1px solid;border-radius:999px;padding:1px 9px;font-size:.75rem;white-space:nowrap;font-weight:600}}
+.kpis{{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}}
+.kpi{{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;min-width:0}}
+.kpi span{{color:var(--mut);font-size:.85rem}} .kpi b{{font:800 1.6rem Sora,system-ui;color:var(--amb)}}
+.kpi em{{font-style:normal;font-size:.8rem;color:var(--mut)}} .kpi svg{{max-width:460px}}
+.sv{{font:11px Inter,system-ui,sans-serif;fill:var(--txt)}} .sv.b{{font-weight:700}} .sv.mut{{fill:var(--mut)}}
+.leg{{font-size:.8rem;color:var(--mut)}} .leg i{{display:inline-block;width:18px;height:0;border-top:2.5px solid;margin:0 5px 3px 12px;vertical-align:middle}}
+.narr{{max-width:80ch}} .aviso{{border:1px dashed var(--warn);border-radius:10px;padding:8px 12px;font-size:.85rem}}
+.tab{{overflow-x:auto}} table{{width:100%;border-collapse:collapse;min-width:520px}}
+td,th{{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;font-size:.86rem;vertical-align:top}}
+th{{color:var(--mut);font-weight:600}}
+footer{{color:var(--mut);font-size:.82rem;margin-top:20px}}
+</style></head><body><main>
+<div class="chip">Painel de tendências · {_e(d['data_referencia'])} · {d['pontos']} semanas</div>
+<h1>Para onde os números estão indo?</h1>
+<p class="mut narr">{_e(d.get('narrativa', ''))}</p>
+{aviso}
+<p class="leg"><i style="border-color:var(--amb)"></i>semana a semana <i style="border-color:var(--mut);border-top-style:dashed"></i>média móvel
+<i style="border-color:var(--warn);border-top-style:dashed"></i>projeção no ritmo atual até {_e(d['horizonte_fim'][8:10])}/{_e(d['horizonte_fim'][5:7])}
+<i style="border-color:var(--ok);border-top-style:dashed"></i>meta</p>
+<div class="grade">
+<section class="card largo"><h2>Sinais antecipados</h2><ul class="lista">{sinais}</ul></section>
+{''.join(blocos)}
+<section class="card"><h2>Cenários "e se"</h2><div class="tab"><table><tr><th>Cenário</th><th>Cobertura</th><th>Projeção</th></tr>{cen}</table></div>
+<p><small>Regra: cada conversa 1:1 a mais por semana com alguém que tem meta vencida cobre essa pessoa (100 ÷ pessoas com meta vencida pontos); depois o número segue no ritmo de hoje. É conta da regra, não previsão.</small></p></section>
+<section class="card"><h2>Pessoas: engajamento nas últimas semanas</h2><div class="tab"><table><tr><th>Pessoa</th><th>Série</th><th>Ritmo</th><th>Quedas</th></tr>{pessoas}</table></div>
+<p><small>As 6 com pior ritmo. Ritmo = inclinação da reta (mínimos quadrados).</small></p></section>
+</div>
+<footer>agentic-app · workflow painel_tendencias · acesso: estratégia, diretoria e admin · números calculados por código (tendencias.py); o LLM só costura a narrativa.</footer>
+</main></body></html>
+"""
+
+
+def render_tendencias_pdf(d: dict) -> bytes:
+    cmds = []
+
+    def txt(x, y, s, tam=10, negrito=False):
+        cmds.append(f"BT /{'F2' if negrito else 'F1'} {tam} Tf {x} {y} Td ({_pdf_texto(s)}) Tj ET")
+
+    def quebra(s, y, tam=9, largura=100, x=40):
+        while s:
+            corte = s[:largura].rfind(" ") if len(s) > largura else len(s)
+            txt(x, y, s[:corte], tam); y -= tam + 4
+            s = s[corte:].strip()
+        return y
+
+    txt(40, 800, "Painel de tendencias", 18, True)
+    txt(40, 782, f"{d['data_referencia']}  -  {d['pontos']} semanas  -  projecao ate {d['horizonte_fim']}", 10)
+    y = quebra(d.get("narrativa", ""), 760)
+    if d["exemplo"]:
+        y = quebra("Inclui historico de EXEMPLO (ficticio).", y - 2, 8)
+    y -= 8
+    txt(40, y, "Sinais antecipados", 12, True); y -= 16
+    for s in d["sinais"][:6]:
+        y = quebra(f"[{NIVEL_ROT[s['nivel']]}] {s['texto']}", y)
+    y -= 6
+    txt(40, y, "Indicadores", 12, True); y -= 18
+    for m in d["metricas"]:
+        if y < 90:
+            break
+        serie = m["serie"]
+        txt(40, y, m["nome"][:44], 8, True)
+        if len(serie) >= 2:
+            lo, hi = min(serie), max(serie)
+            hi = hi if hi > lo else lo + 1
+            pts = [(250 + 150 * i / (len(serie) - 1), y - 4 + 14 * (v - lo) / (hi - lo)) for i, v in enumerate(serie)]
+            cmds.append("0.63 0.38 0.03 RG 1.2 w " + " ".join(
+                f"{x:.1f} {yy:.1f} {'m' if i == 0 else 'l'}" for i, (x, yy) in enumerate(pts)) + " S")
+        txt(410, y, f"{_f(m['ultimo'])} {m['unidade']}  ritmo {m['ritmo_semana']:+g}/sem", 8)
+        y -= 12
+        y = quebra(m["projecao"]["texto"], y, 7, 120, 52) - 4
+    if y > 80 and d["cenarios"]:
+        txt(40, y, "Cenarios 'e se'", 12, True); y -= 16
+        for c in d["cenarios"]:
+            y = quebra(c["texto"], y, 8, 110)
+    txt(40, 40, "agentic-app - workflow painel_tendencias - numeros calculados por codigo", 8)
+    return _montar_pdf(cmds)
+
+
+def gerar_tendencias(dados: dict, pasta: Path, art: dict) -> list:
+    pasta = Path(pasta)
+    (pasta / art["html"]).write_text(render_tendencias_html(dados), encoding="utf-8")
+    arquivos = [art["html"]]
+    if art.get("pdf"):
+        (pasta / art["pdf"]).write_bytes(render_tendencias_pdf(dados))
+        arquivos.append(art["pdf"])
+    return arquivos

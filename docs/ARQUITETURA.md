@@ -53,7 +53,8 @@ marcadas como `critica: false`.
 |---|---|---|
 | `svc-coaching` | `equipe.ler` | followup_metas, convite_1a1, proximos_passos, relatorio_equipe |
 | `svc-rh` | `rh.perfil.ler`, `rh.faq.ler` | assistente_rh |
-| `svc-diretoria` | `equipe.ler`, `audit.ler`, `aprovacoes.ler` (só leitura) | painel_executivo |
+| `svc-diretoria` | `equipe.ler`, `audit.ler`, `aprovacoes.ler` (só leitura) | painel_executivo, snapshot_indicadores |
+| `svc-estrategia` | `equipe.ler`, `historico.ler` (só leitura) | painel_tendencias |
 
 O audit grava as duas coisas: **quem pediu** (`usuario`, `papeis`) e **como o workflow agiu** (`identidade`).
 
@@ -67,6 +68,8 @@ O audit grava as duas coisas: **quem pediu** (`usuario`, `papeis`) e **como o wo
 | `sugestoes.json` | última rodada do agente de fundo |
 | `relatorio.html`, `relatorio.pdf` | saída visual do `relatorio_equipe` |
 | `executivo.html`, `executivo.pdf` | saída do `painel_executivo` (servida só pela rota `/executivo`, com RBAC) |
+| `historico.jsonl` | um snapshot por semana (chave = segunda-feira), gravado pelo `snapshot_indicadores` |
+| `tendencias.html`, `tendencias.pdf` | saída do `painel_tendencias` (servida só pela rota `/tendencias`, com RBAC) |
 
 ## Painel executivo (1.1.0)
 
@@ -95,6 +98,32 @@ O audit grava as duas coisas: **quem pediu** (`usuario`, `papeis`) e **como o wo
   contando as chamadas reais ao adaptador (o `FakeLLM` conta igual). Tokens = caracteres ÷ 4 quando o adaptador não
   informa. Custo = chamadas × `por_chamada` + tokens/1000 × `por_1k_tokens`.
 - **Alertas**: regras fixas em `executivo.alertas`, ordenadas por nível (crítico → atenção → ok), no máximo 5.
+
+## Tendências (1.2.0)
+
+```
+ segunda 07:00 ─► snapshot_indicadores ─► executivo.calcular ─► snapshot_de ─► saida/historico.jsonl
+                                                                                   │
+ data/historico.json (EXEMPLO, rotulado) ───────────────► juntar (real vence na mesma semana)
+                                                                                   ▼
+ painel_tendencias: contexto equipe + contexto historico (historico.ler) → código analisar
+                    → código fatos → LLM redigir (só costura) → código com_narrativa → formatação + artefato
+```
+
+Regras (todas em `tendencias.py`, testadas):
+
+- **Ritmo** = inclinação da reta de mínimos quadrados, x = semanas desde o 1º ponto. **Média móvel** de
+  `janela_media_movel` semanas.
+- **Projeção** a partir do último valor: semanas = (meta − último) ÷ ritmo; data = última semana + semanas × 7 dias
+  (para cima). Depois de `horizonte_fim` → "não é atingida até o fim do trimestre". Ritmo no sentido contrário →
+  "não é atingida". Meta já atingida e ritmo piorando → data em que sai da meta ("rompe").
+- **Histórico insuficiente**: menos de `min_pontos` semanas → sem ritmo nem projeção, nem cenário.
+- **Sinal antecipado**: `quedas_seguidas_alerta` movimentos seguidos no sentido ruim no fim da série (queda se
+  `maior` é melhor, alta se `menor`). Vale também por pessoa (engajamento das últimas semanas em `equipe.json`).
+- **Cenário "e se" (coaching)**: cada conversa 1:1 a mais por semana com alguém que tem meta vencida cobre essa
+  pessoa: vale 100 ÷ (pessoas com meta vencida) pontos, teto 100%; depois segue o ritmo de hoje.
+- **Narrativa**: o nó LLM recebe frases prontas com os números; trocar o LLM não muda nenhum número (teste
+  `test_llm_so_costura_nunca_muda_numero`).
 
 ## Trocar o LLM
 

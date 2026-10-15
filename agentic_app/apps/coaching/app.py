@@ -17,12 +17,12 @@ import re
 from datetime import date
 from pathlib import Path
 
-from ... import config, executivo
+from ... import config, executivo, tendencias
 from ...acoes import CaixaSaida, FilaAprovacao
 from ...gatilhos import Gatilhos
 from ...llm import normalizar
 from ...policies import grupos_de_ferramentas
-from ...relatorio import gerar_artefatos, gerar_executivo
+from ...relatorio import gerar_artefatos, gerar_executivo, gerar_tendencias
 from ...seguranca import AuditLog, Identidade, PermissaoNegada, Usuario
 from ...workflow import Motor, Registro
 
@@ -275,6 +275,42 @@ class AppCoaching:
                 registros["audit"], aprovacoes["fila"], registros["enviados"], aprovacoes["sugestoes"],
                 indicadores, registros["quebra_na_linha"], equipe["data_referencia"])
 
+        cfg_tend = _ler("tendencias.json")
+        self.cfg_tendencias = cfg_tend
+
+        @reg.contexto("historico", escopo="historico.ler")
+        def _ctx_historico(args):
+            nome = cfg_tend.get("historico_exemplo")
+            exemplo = _ler(nome)["semanas"] if nome and (DADOS / nome).exists() else []
+            return {"exemplo": exemplo, "vivo": tendencias.ler_vivo(pasta / cfg_tend["historico_vivo"])}
+
+        @reg.funcao("analisar_tendencias")
+        def _analisar(equipe, historico):
+            hoje = _data(equipe["data_referencia"])
+            pessoas = [resumo_pessoa(p, hoje) for p in equipe["liderados"]]
+            serie = tendencias.juntar(historico["exemplo"], historico["vivo"])
+            return tendencias.analisar(
+                serie, cfg_tend,
+                pessoas=[{"id": p["id"], "nome": p["nome"], "serie": p["engajamento"]} for p in equipe["liderados"]],
+                pessoas_com_meta_vencida=sum(1 for p in pessoas if p["atrasadas"]),
+                data_referencia=equipe["data_referencia"], exemplo=bool(historico["exemplo"]))
+
+        @reg.funcao("linha_snapshot")
+        def _linha(executivo, equipe):
+            hoje = _data(equipe["data_referencia"])
+            uns = sum(1 for p in equipe["liderados"] if (hoje - _data(p["ultimo_1a1"])).days <= 7)
+            return tendencias.snapshot_de(executivo, uns)
+
+        def _artefato_snapshot(dados, pasta_saida, art):
+            linha = {k: v for k, v in dados.items() if k != "artefatos"}
+            tendencias.gravar_snapshot(linha, Path(pasta_saida) / art["arquivo"])
+            return [art["arquivo"]]
+
+        reg.funcoes["fatos_para_narrativa"] = tendencias.fatos_para_narrativa
+        reg.funcoes["com_narrativa"] = lambda d, narrativa: {**d, "narrativa": narrativa}
+        reg.artefatos["tendencias"] = gerar_tendencias
+        reg.artefatos["snapshot"] = _artefato_snapshot
+
         for f in (metas_atrasadas, detectar_sinais, pegar_liderado, agregar_equipe,
                   extrair_dados_pedido, explicar_resultado, buscar_faq):
             reg.funcoes[f.__name__] = f
@@ -299,6 +335,14 @@ class AppCoaching:
     def executivo(self, usuario, gatilho="manual"):
         """Aba 'painel executivo': workflow painel_executivo (só diretoria/admin; negado = auditado)."""
         return self.motor.executar("painel_executivo", {}, usuario, gatilho=gatilho)
+
+    def tendencias(self, usuario, gatilho="manual"):
+        """Aba 'tendências': workflow painel_tendencias (estratégia, diretoria, admin; negado = auditado)."""
+        return self.motor.executar("painel_tendencias", {}, usuario, gatilho=gatilho)
+
+    def gravar_snapshot(self, usuario=None, gatilho="manual"):
+        """Foto da semana em historico.jsonl (o agendado de segunda 07:00 faz isso sozinho)."""
+        return self.motor.executar("snapshot_indicadores", {}, usuario or self.usuarios["sistema"], gatilho=gatilho)
 
     def guardar_sugestoes(self, resultado):
         self.sugestoes = resultado["saida"]["sugestoes"]

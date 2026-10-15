@@ -1,0 +1,18 @@
+{
+  "_aviso": "DADO DE EXEMPLO (fictício): 12 semanas de piloto do app de Coaching de gestor, coerentes com a foto de 15/10/2026. Numa empresa real, apague este arquivo (ou tire de tendencias.json) e o histórico se forma sozinho em saida/historico.jsonl, com o snapshot semanal de segunda 07:00.",
+  "exemplo": true,
+  "semanas": [
+    {"semana": "2026-07-27", "metas_concluidas": 18.8, "engajamento_medio": 79.4, "pessoas_em_risco": 3, "conversa_7d": 30.0, "uns_1a1_7d": 3, "execucoes": 2, "taxa_sem_edicao": 0.0, "chamadas_llm": 6, "custo": 0, "eventos_risco": 0},
+    {"semana": "2026-08-03", "metas_concluidas": 18.8, "engajamento_medio": 79.2, "pessoas_em_risco": 3, "conversa_7d": 28.6, "uns_1a1_7d": 3, "execucoes": 4, "taxa_sem_edicao": 0.0, "chamadas_llm": 12, "custo": 0, "eventos_risco": 1},
+    {"semana": "2026-08-10", "metas_concluidas": 18.8, "engajamento_medio": 79.0, "pessoas_em_risco": 4, "conversa_7d": 33.3, "uns_1a1_7d": 2, "execucoes": 5, "taxa_sem_edicao": 0.0, "chamadas_llm": 15, "custo": 0, "eventos_risco": 0},
+    {"semana": "2026-08-17", "metas_concluidas": 25.0, "engajamento_medio": 79.1, "pessoas_em_risco": 4, "conversa_7d": 30.0, "uns_1a1_7d": 3, "execucoes": 6, "taxa_sem_edicao": 20.0, "chamadas_llm": 18, "custo": 0, "eventos_risco": 2},
+    {"semana": "2026-08-24", "metas_concluidas": 25.0, "engajamento_medio": 78.6, "pessoas_em_risco": 4, "conversa_7d": 37.5, "uns_1a1_7d": 4, "execucoes": 8, "taxa_sem_edicao": 0.0, "chamadas_llm": 24, "custo": 0, "eventos_risco": 1},
+    {"semana": "2026-08-31", "metas_concluidas": 25.0, "engajamento_medio": 78.4, "pessoas_em_risco": 5, "conversa_7d": 33.3, "uns_1a1_7d": 3, "execucoes": 7, "taxa_sem_edicao": 25.0, "chamadas_llm": 21, "custo": 0, "eventos_risco": 0},
+    {"semana": "2026-09-07", "metas_concluidas": 25.0, "engajamento_medio": 78.3, "pessoas_em_risco": 5, "conversa_7d": 37.5, "uns_1a1_7d": 3, "execucoes": 9, "taxa_sem_edicao": 20.0, "chamadas_llm": 27, "custo": 0, "eventos_risco": 1},
+    {"semana": "2026-09-14", "metas_concluidas": 25.0, "engajamento_medio": 78.0, "pessoas_em_risco": 5, "conversa_7d": 40.0, "uns_1a1_7d": 4, "execucoes": 10, "taxa_sem_edicao": 33.3, "chamadas_llm": 30, "custo": 0, "eventos_risco": 3},
+    {"semana": "2026-09-21", "metas_concluidas": 31.2, "engajamento_medio": 77.8, "pessoas_em_risco": 5, "conversa_7d": 37.5, "uns_1a1_7d": 3, "execucoes": 9, "taxa_sem_edicao": 25.0, "chamadas_llm": 27, "custo": 0, "eventos_risco": 1},
+    {"semana": "2026-09-28", "metas_concluidas": 31.2, "engajamento_medio": 77.5, "pessoas_em_risco": 6, "conversa_7d": 42.9, "uns_1a1_7d": 4, "execucoes": 11, "taxa_sem_edicao": 33.3, "chamadas_llm": 33, "custo": 0, "eventos_risco": 2},
+    {"semana": "2026-10-05", "metas_concluidas": 31.2, "engajamento_medio": 77.1, "pessoas_em_risco": 6, "conversa_7d": 40.0, "uns_1a1_7d": 3, "execucoes": 10, "taxa_sem_edicao": 40.0, "chamadas_llm": 30, "custo": 0, "eventos_risco": 2},
+    {"semana": "2026-10-12", "metas_concluidas": 31.2, "engajamento_medio": 76.7, "pessoas_em_risco": 6, "conversa_7d": 42.9, "uns_1a1_7d": 3, "execucoes": 9, "taxa_sem_edicao": 0.0, "chamadas_llm": 27, "custo": 0, "eventos_risco": 2}
+  ]
+}

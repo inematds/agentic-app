@@ -2,7 +2,7 @@
   "_como_usar": "Indicadores do painel executivo. 1) 'metricas': os números do canvas de resultado (templates/canvas-resultado.md), com meta e sentido ('maior' = quanto mais, melhor; 'menor' = limite máximo). Cada 'id' precisa de uma função no seu app que devolva {valor, serie}. 2) 'metrica_principal': a métrica de sucesso do canvas. 3) 'acesso': papéis que veem o painel. 4) 'custo_por_modelo': preço por chamada e por 1.000 tokens de cada modelo de config.MODELOS_PADRAO (0 = não cobrado, ex.: modelo local). 5) 'limiares': quando um número vira alerta. 6) 'ignorar_workflows': leituras (como o próprio painel) que não contam como operação dos agentes.",
   "acesso": ["diretoria", "admin"],
   "metrica_principal": "minha_metrica",
-  "ignorar_workflows": ["painel_executivo"],
+  "ignorar_workflows": ["painel_executivo", "painel_tendencias", "snapshot_indicadores"],
   "regra_principal": "Escreva aqui, em uma frase, como a métrica principal é contada.",
   "metricas": [
     {"id": "minha_metrica", "nome": "Nome da métrica de sucesso", "unidade": "%", "linha_base": 0, "meta": 80, "sentido": "maior"},

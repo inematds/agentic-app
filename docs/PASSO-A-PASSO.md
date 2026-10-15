@@ -96,6 +96,25 @@ com controle e a que custo.
 **Deu certo quando:** a diretoria responde "está entregando?" olhando só essa página, e quem tem papel de
 colaborador ou gestor recebe 403 com uma linha `workflow.negado` no audit.
 
+## Passo 12 — Medir a tendência e revisar todo trimestre
+
+O painel executivo é a foto da semana. O de tendências é o filme: para onde cada número está indo e se a meta
+chega no prazo.
+
+1. Copie `templates/tendencias.json` para a pasta `data/` do seu app. Liste as métricas que vale acompanhar (campos do
+   snapshot semanal), o `horizonte_fim` (fim do trimestre), `min_pontos` e `quedas_seguidas_alerta`.
+2. Deixe o workflow `snapshot_indicadores` agendado (segunda 07:00). Em 4 semanas o painel começa a projetar; antes
+   disso ele diz "histórico insuficiente", de propósito.
+3. Dê o papel `estrategia` a quem planeja (diretoria e admin também veem).
+4. Abra `/tendencias`. Leia primeiro os sinais antecipados (ex.: engajamento caindo 3 semanas seguidas): eles
+   aparecem antes de a meta ser perdida.
+5. Na revisão trimestral: compare a projeção com o que aconteceu, ajuste metas no `indicadores.json` e no
+   `tendencias.json` (um teste confere que batem), use os cenários "e se" para decidir a alavanca (ex.: mais 1:1 por
+   semana) e registre a decisão.
+
+**Deu certo quando:** a reunião trimestral decide pela projeção e pelos sinais, não por impressão, e cada número da
+narrativa tem origem no código (o LLM só costura as frases).
+
 ## Checklist de implantação
 
 - [ ] Canvas preenchido, com métrica, linha de base e dono
@@ -112,3 +131,4 @@ colaborador ou gestor recebe 403 com uma linha `workflow.negado` no audit.
 - [ ] `bash tests/run.sh` verde no CI antes de cada deploy
 - [ ] Piloto medido contra a linha de base antes de ampliar
 - [ ] `indicadores.json` com metas do canvas e preços por modelo; painel executivo só para diretoria/admin
+- [ ] Snapshot semanal agendado, histórico de exemplo removido, revisão trimestral com o painel de tendências

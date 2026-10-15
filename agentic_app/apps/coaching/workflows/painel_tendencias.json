@@ -1,0 +1,22 @@
+{
+  "id": "painel_tendencias",
+  "versao": 1,
+  "titulo": "Painel de tendências (área estratégica)",
+  "resultado_de_negocio": "Mostra para onde os indicadores estão indo: ritmo, projeção até a meta, sinais antecipados e cenários.",
+  "seguranca": {"executar": ["estrategia", "diretoria", "admin"], "identidade": "svc-estrategia"},
+  "gatilhos": [{"tipo": "manual", "componente": "aba_tendencias"}],
+  "entrada": {"type": "object", "additionalProperties": false},
+  "nos": [
+    {"id": "ctx", "tipo": "contexto", "carregar": "equipe"},
+    {"id": "historico", "tipo": "contexto", "carregar": "historico"},
+    {"id": "analise", "tipo": "codigo", "funcao": "analisar_tendencias", "args": {"equipe": "$ctx", "historico": "$historico"}},
+    {"id": "fatos", "tipo": "codigo", "funcao": "fatos_para_narrativa", "args": {"d": "$analise"}},
+    {"id": "narrativa", "tipo": "llm", "modo": "redigir", "tarefa": "resumo", "dados": "$fatos",
+     "instrucao": "Só costure as frases; não mude nenhum número.",
+     "modelo_texto": "{periodo} {principal} {sinais} {cenario}"},
+    {"id": "completo", "tipo": "codigo", "funcao": "com_narrativa", "args": {"d": "$analise", "narrativa": "$narrativa"}},
+    {"id": "saida", "tipo": "formatacao", "saida": "$completo",
+     "esquema": {"type": "object", "required": ["metricas", "sinais", "cenarios", "narrativa"]},
+     "artefato": {"tipo": "tendencias", "html": "tendencias.html", "pdf": "tendencias.pdf"}}
+  ]
+}

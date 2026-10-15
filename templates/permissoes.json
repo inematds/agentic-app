@@ -6,12 +6,14 @@
     "colaborador": "vê só o próprio perfil",
     "sistema": "agendador e eventos; nunca aprova nada",
     "diretoria": "patrocina o app; vê o painel executivo (resultado, controle, custo); não executa workflows da equipe",
-    "admin": "administra o app; também vê o painel executivo"
+    "admin": "administra o app; também vê o painel executivo e o de tendências",
+    "estrategia": "área estratégica; vê o painel de tendências (para onde os números vão), não o executivo"
   },
   "identidades": {
     "svc-coaching": {"escopos": ["equipe.ler"], "nota": "não lê dados de RH"},
     "svc-rh": {"escopos": ["rh.perfil.ler", "rh.faq.ler"], "nota": "não lê metas da equipe"},
-    "svc-diretoria": {"escopos": ["equipe.ler", "audit.ler", "aprovacoes.ler"], "nota": "só leitura: números da equipe, audit e fila"}
+    "svc-diretoria": {"escopos": ["equipe.ler", "audit.ler", "aprovacoes.ler"], "nota": "só leitura: números da equipe, audit e fila"},
+    "svc-estrategia": {"escopos": ["equipe.ler", "historico.ler"], "nota": "só leitura: equipe e histórico semanal"}
   },
   "workflows": [
     {"workflow": "followup_metas", "executar": ["gestor", "sistema"], "identidade": "svc-coaching", "aprova_acoes": ["gestor", "rh"]},
@@ -19,7 +21,9 @@
     {"workflow": "proximos_passos", "executar": ["sistema", "gestor"], "identidade": "svc-coaching", "aprova_acoes": []},
     {"workflow": "assistente_rh", "executar": ["colaborador", "gestor", "rh", "sistema"], "identidade": "svc-rh", "aprova_acoes": ["gestor", "rh"]},
     {"workflow": "relatorio_equipe", "executar": ["gestor", "rh", "sistema"], "identidade": "svc-coaching", "aprova_acoes": []},
-    {"workflow": "painel_executivo", "executar": ["diretoria", "admin"], "identidade": "svc-diretoria", "aprova_acoes": []}
+    {"workflow": "painel_executivo", "executar": ["diretoria", "admin"], "identidade": "svc-diretoria", "aprova_acoes": []},
+    {"workflow": "painel_tendencias", "executar": ["estrategia", "diretoria", "admin"], "identidade": "svc-estrategia", "aprova_acoes": []},
+    {"workflow": "snapshot_indicadores", "executar": ["sistema", "diretoria", "admin"], "identidade": "svc-diretoria", "aprova_acoes": []}
   ],
   "aprovadores": {"enviar_email": ["gestor", "rh"]}
 }

@@ -38,7 +38,7 @@
   .mut{color:var(--mut)} .amb{color:var(--amb)}
   .chip{display:inline-block;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amb);font-weight:600;font-family:Sora}
   nav{position:sticky;top:0;z-index:30;backdrop-filter:blur(12px);background:rgba(12,12,16,.78);border-bottom:1px solid var(--line)}
-  nav .wrap{display:flex;align-items:center;gap:22px;height:60px}
+  nav .wrap{display:flex;align-items:center;gap:16px;height:60px}
   nav .brand{display:flex;align-items:center;gap:8px;font-family:Sora;font-weight:800;letter-spacing:-.02em;color:var(--amb)}
   nav .brand .emoji{font-size:1.25rem}
   nav .sep{color:var(--mut);opacity:.45}
@@ -47,7 +47,7 @@
   nav .pro{color:var(--pro);font-weight:600;font-size:.88rem;font-family:Sora}
   nav .pro:hover{filter:brightness(1.15)}
   nav .clubpro{display:inline-flex;align-items:center;gap:6px}
-  nav .links{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:.92rem}
+  nav .links{margin-left:auto;display:flex;align-items:center;gap:11px;font-size:.88rem}
   nav .links a.sec{color:var(--mut)} nav .links a.sec:hover{color:var(--txt)}
   .lang{display:inline-flex;gap:2px;font-family:Sora;font-size:.78rem}
   .lang a{color:var(--mut);padding:.2em .45em;border-radius:6px} .lang a.on{color:var(--amb);background:rgba(250,204,21,.12)}
@@ -133,6 +133,7 @@
     <a class="sec" href="#pilares">Pilares</a>
     <a class="sec" href="#guia">Guia de uso</a>
     <a class="sec" href="#executivo">Executivo</a>
+    <a class="sec" href="#tendencias">Tendências</a>
     <a class="sec" href="#videos">Vídeos</a>
     <a class="sec" href="#encaixe">Onde se encaixa</a>
     <span class="lang"><a class="on" href="./">PT</a><a href="en/">EN</a><a href="es/">ES</a></span>
@@ -233,10 +234,10 @@
 
   <div class="step"><div class="b">1</div><div>
     <h3>Baixe e rode os testes</h3>
-    <p>62 checks, sem rede. A última linha tem que ser OK.</p>
+    <p>75 checks, sem rede. A última linha tem que ser OK.</p>
 <pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
 <span class="k">cd</span> agentic-app
-<span class="k">bash</span> tests/run.sh          <span class="c"># 62 checks, 0 falhas → OK</span></pre>
+<span class="k">bash</span> tests/run.sh          <span class="c"># 75 checks, 0 falhas → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
@@ -330,6 +331,24 @@
   </div>
 </div></section>
 
+<section id="tendencias"><div class="wrap">
+  <span class="chip">Tendências · 1.2.0</span>
+  <h2>O filme, não a foto: para onde os números estão indo?</h2>
+  <p class="sub">O executivo mostra se o app entrega agora. O painel de tendências usa o histórico semanal para dizer o ritmo de cada número, quando a meta chega (ou que não chega no trimestre) e o que está piorando antes de virar problema.</p>
+  <div class="exec">
+    <div class="grid">
+      <div class="card"><h3>📈 Ritmo e projeção</h3><p>Regressão linear simples sobre as semanas: "no ritmo atual, a meta é atingida em DD/MM" ou "não é atingida até o fim do trimestre". Meta já batida mas piorando mostra a data em que sai.</p></div>
+      <div class="card"><h3>⚠️ Sinais antecipados</h3><p>Três semanas seguidas no sentido ruim viram alerta. Na demo: engajamento médio caindo há 8 semanas e 4 pessoas com 3 quedas seguidas (Carla, Henrique, Elisa, Lucas).</p></div>
+      <div class="card"><h3>🔀 Cenários "e se"</h3><p>Regra explícita no código: cada 1:1 a mais por semana cobre uma pessoa com meta vencida. Com 5 por semana, 42,9% vira 76,2% e a meta de 90% chega em 28/12/2026.</p></div>
+      <div class="card"><h3>🗓️ Histórico que se forma sozinho</h3><p>O workflow <code>snapshot_indicadores</code> grava a foto da semana toda segunda 07:00 em <code>saida/historico.jsonl</code>. Com menos de 4 semanas, o painel diz "histórico insuficiente".</p></div>
+      <div class="card"><h3>🔒 Estratégia, diretoria e admin</h3><p>Workflow <code>painel_tendencias</code> com identidade só de leitura. O LLM só costura a narrativa com frases já calculadas; trocar o LLM não muda nenhum número.</p>
+<pre><span class="k">python3</span> -m agentic_app.demo   <span class="c"># seção 11: snapshot + tendências</span>
+<span class="c"># http://127.0.0.1:8765/tendencias?usuario=estela</span></pre></div>
+    </div>
+    <figure><img src="assets/tendencias.jpg" alt="Painel de tendências com narrativa, sinais antecipados e gráficos de linha com média móvel, meta e projeção" loading="lazy"><figcaption>Print real da demo (12 semanas, histórico de exemplo rotulado): a cobertura sobe 1,3 p.p. por semana e não chega a 90% até 31/12/2026; o engajamento sai da meta em 02/12/2026.</figcaption></figure>
+  </div>
+</div></section>
+
 <section id="videos" class="videos"><div class="wrap">
   <span class="chip">Vídeos</span>
   <h2>Veja o framework funcionando</h2>
@@ -356,9 +375,10 @@
 <section id="roadmap"><div class="wrap">
   <span class="chip">Roadmap</span>
   <h2>O que já existe e o que vem depois</h2>
-  <p class="sub">A versão 1.0.0 é o núcleo completo com um app de referência. A 1.1.0 acrescenta o painel executivo.</p>
+  <p class="sub">A versão 1.0.0 é o núcleo completo com um app de referência. A 1.1.0 acrescenta o painel executivo e a 1.2.0, o de tendências.</p>
   <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Núcleo + Coaching de gestor</strong><span>Motor com 5 tipos de nó, FakeLLM e Ollama local, fila de aprovação, papéis e identidades, audit com hash, 3 tipos de gatilho, política de férias e licença, relatório HTML/PDF, painel web, 48 checks.</span></div></div>
   <div class="phase"><div class="tag">1.1.0</div><div class="d"><strong>Painel executivo</strong><span>Resultado do canvas contra a meta, operação dos agentes, controle e risco, custo de LLM e alertas por regra; papel diretoria; HTML e PDF; 62 checks.</span></div></div>
+  <div class="phase"><div class="tag">1.2.0</div><div class="d"><strong>Tendências</strong><span>Histórico semanal com snapshot automático, ritmo por regressão, projeção até a meta, sinais antecipados, comparação entre pessoas e cenários "e se"; papel estratégia; 75 checks.</span></div></div>
   <div class="phase"><div class="tag">Próximo</div><div class="d"><strong>Mais apps de referência</strong><span>Outros processos usando o mesmo motor, cada um com o seu canvas, suas políticas e seus testes.</span></div></div>
   <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Conectores de produção</strong><span>Exemplos de executor SMTP, login corporativo no painel e leitura de banco no nó de contexto.</span></div></div>
 </div></section>

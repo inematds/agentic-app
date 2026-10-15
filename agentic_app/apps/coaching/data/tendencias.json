@@ -1,0 +1,26 @@
+{
+  "_aviso": "Painel de tendências do app de referência. Cópia preenchida de templates/tendencias.json.",
+  "acesso": ["estrategia", "diretoria", "admin"],
+  "historico_exemplo": "historico.json",
+  "historico_vivo": "historico.jsonl",
+  "horizonte_fim": "2026-12-31",
+  "rotulo_horizonte": "fim do trimestre",
+  "min_pontos": 4,
+  "janela_media_movel": 4,
+  "quedas_seguidas_alerta": 3,
+  "metricas": [
+    {"id": "conversa_7d", "nome": "Metas vencidas com conversa em até 7 dias", "grupo": "resultado", "unidade": "%", "meta": 90, "sentido": "maior"},
+    {"id": "metas_concluidas", "nome": "Metas concluídas", "grupo": "resultado", "unidade": "%", "meta": 50, "sentido": "maior"},
+    {"id": "engajamento_medio", "nome": "Engajamento médio", "grupo": "resultado", "unidade": "pts", "meta": 75, "sentido": "maior"},
+    {"id": "pessoas_em_risco", "nome": "Pessoas em risco", "grupo": "resultado", "unidade": "pessoas", "meta": 3, "sentido": "menor"},
+    {"id": "execucoes", "nome": "Execuções dos agentes por semana", "grupo": "adocao", "unidade": "execuções", "sentido": "neutro"},
+    {"id": "taxa_sem_edicao", "nome": "Rascunhos aprovados sem edição (confiança)", "grupo": "adocao", "unidade": "%", "meta": 60, "sentido": "maior"},
+    {"id": "chamadas_llm", "nome": "Chamadas de LLM por semana", "grupo": "custo", "unidade": "chamadas", "sentido": "neutro"},
+    {"id": "custo", "nome": "Custo de LLM por semana", "grupo": "custo", "unidade": "USD", "sentido": "neutro"},
+    {"id": "eventos_risco", "nome": "Eventos de risco (negados, barrados, quebras)", "grupo": "risco", "unidade": "eventos", "sentido": "menor", "limite": 3}
+  ],
+  "cenarios": [
+    {"id": "1a1_5", "metrica": "conversa_7d", "alavanca": "uns_1a1_7d", "valor": 5, "descricao": "Se a gestora subir para 5 conversas 1:1 por semana"},
+    {"id": "1a1_6", "metrica": "conversa_7d", "alavanca": "uns_1a1_7d", "valor": 6, "descricao": "Se a gestora subir para 6 conversas 1:1 por semana"}
+  ]
+}

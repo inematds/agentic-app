@@ -1,7 +1,7 @@
 """Painel web local: python3 -m agentic_app.serve [--porta 8765]
 
 Só 127.0.0.1. Usuário da demo vem do cabeçalho X-Usuario (ana, rosa, bruno, dora).
-A aba /executivo também aceita ?usuario=dora (um link não manda cabeçalho) — mesma confiança da demo.
+As abas /executivo e /tendencias também aceitam ?usuario=dora / ?usuario=estela (um link não manda cabeçalho) — mesma confiança da demo.
 Na sua empresa, troque isso pelo login corporativo (SSO) — ver docs/PASSO-A-PASSO.md.
 
 A lógica fica em `tratar(...)`, função pura que os testes chamam sem abrir socket.
@@ -16,7 +16,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from .apps.coaching import montar
-from .relatorio import render_executivo_html
+from .relatorio import render_executivo_html, render_tendencias_html
 from .seguranca import PermissaoNegada
 from .workflow import ErroWorkflow
 
@@ -56,7 +56,7 @@ NEGADO_HTML = """<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 <style>:root{{--bg:#0c0c10;--txt:#e9e9ee;--mut:#9a9aa6}}@media (prefers-color-scheme: light){{:root{{--bg:#f6f7f9;
 --txt:#1a1a22;--mut:#5b5b68}}}}body{{margin:0;background:var(--bg);color:var(--txt);font:16px/1.5 system-ui;padding:40px 16px}}
 p{{color:var(--mut)}}</style></head><body><h1>Acesso negado</h1><p>{msg}</p>
-<p>O painel executivo é só para diretoria e admin. A tentativa ficou registrada no audit log.</p></body></html>"""
+<p>Este painel é só para {quem}. A tentativa ficou registrada no audit log.</p></body></html>"""
 
 
 def tratar(metodo, caminho, corpo=b"", uid="ana", a=None):
@@ -75,11 +75,23 @@ def tratar(metodo, caminho, corpo=b"", uid="ana", a=None):
                 r = a.executivo(a.usuario(quem), gatilho="manual:painel")
             except PermissaoNegada as e:
                 if rota == "/executivo":
-                    return 403, "text/html; charset=utf-8", NEGADO_HTML.format(msg=html.escape(str(e))).encode()
+                    return 403, "text/html; charset=utf-8", NEGADO_HTML.format(msg=html.escape(str(e)), quem="diretoria e admin").encode()
                 raise
             if rota == "/api/executivo":
                 return _json(200, r["saida"])
             return 200, "text/html; charset=utf-8", render_executivo_html(r["saida"]).encode()
+        if metodo == "GET" and rota in ("/tendencias", "/api/tendencias"):
+            quem = parse_qs(url.query).get("usuario", [uid])[0]
+            try:
+                r = a.tendencias(a.usuario(quem), gatilho="manual:painel")
+            except PermissaoNegada as e:
+                if rota == "/tendencias":
+                    return 403, "text/html; charset=utf-8", NEGADO_HTML.format(
+                        msg=html.escape(str(e)), quem="estratégia, diretoria e admin").encode()
+                raise
+            if rota == "/api/tendencias":
+                return _json(200, r["saida"])
+            return 200, "text/html; charset=utf-8", render_tendencias_html(r["saida"]).encode()
         if metodo == "GET" and rota == "/api/audit":
             return _json(200, a.audit.ler()[-50:])
         if metodo == "GET" and rota.startswith("/saida/"):

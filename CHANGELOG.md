@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.0 — 2026-10-15
+
+Painel de tendências: "para onde está indo?" (o executivo responde "está entregando agora?").
+
+- `agentic_app/tendencias.py` (só stdlib, determinístico): variação semana a semana e no período, média móvel,
+  regressão linear simples, projeção até a meta ("atingida em DD/MM" ou "não é atingida até o fim do trimestre"),
+  ruptura futura de meta já atingida, sinais antecipados (N semanas seguidas no sentido ruim), comparação entre
+  pessoas e cenários "e se" com regra explícita. Com menos de `min_pontos` semanas: "histórico insuficiente".
+- Histórico: `apps/coaching/data/historico.json` (12 semanas, DADO DE EXEMPLO rotulado) + snapshot semanal real em
+  `saida/historico.jsonl` pelo workflow `snapshot_indicadores` (agendado segunda 07:00); o real substitui o exemplo
+  da mesma semana.
+- Workflow `painel_tendencias` (papéis `estrategia`, `diretoria`, `admin`; identidade só leitura `svc-estrategia`);
+  usuária fictícia Estela (estratégia). O nó LLM só costura a narrativa com frases já calculadas (FakeLLM padrão).
+- `serve.py`: `/tendencias` (gráficos de linha SVG com média móvel, meta e projeção) e `/api/tendencias`.
+- `relatorio.py`: página de tendências em HTML e PDF. `demo.py`: seção 11.
+- `templates/tendencias.json` (métricas acompanhadas, horizonte, limiares, cenários).
+- Testes: 75 checks (13 novos). Docs PT/EN/ES, ARQUITETURA, PASSO-A-PASSO (passo 12), guia com a seção "Tendências".
+
 ## 1.1.0 — 2026-10-15
 
 Painel executivo: a visão de quem patrocina o app.

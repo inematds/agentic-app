@@ -1,0 +1,20 @@
+{
+  "_como_usar": "Painel de tendências. 1) 'metricas': o que acompanhar semana a semana; cada 'id' é um campo do snapshot semanal (tendencias.CAMPOS_SNAPSHOT) e 'grupo' é resultado, adocao, custo ou risco. 'sentido' maior/menor diz qual direção é boa (neutro = só acompanhar); 'meta' liga a projeção; 'limite' (só em risco) vira alerta crítico. 2) 'horizonte_fim': até quando a projeção vale (ex.: fim do trimestre). 3) 'min_pontos': abaixo disso o painel diz 'histórico insuficiente' em vez de projetar. 4) 'quedas_seguidas_alerta': quantas semanas seguidas no sentido ruim viram sinal antecipado. 5) 'cenarios': 'e se' com regra explícita no código. 6) 'historico_exemplo': apague (null) na empresa; o histórico real se forma em 'historico_vivo' com o snapshot semanal.",
+  "acesso": ["estrategia", "diretoria", "admin"],
+  "historico_exemplo": null,
+  "historico_vivo": "historico.jsonl",
+  "horizonte_fim": "2026-12-31",
+  "rotulo_horizonte": "fim do trimestre",
+  "min_pontos": 4,
+  "janela_media_movel": 4,
+  "quedas_seguidas_alerta": 3,
+  "metricas": [
+    {"id": "conversa_7d", "nome": "Métrica de sucesso do canvas", "grupo": "resultado", "unidade": "%", "meta": 90, "sentido": "maior"},
+    {"id": "taxa_sem_edicao", "nome": "Rascunhos aprovados sem edição (confiança)", "grupo": "adocao", "unidade": "%", "meta": 60, "sentido": "maior"},
+    {"id": "chamadas_llm", "nome": "Chamadas de LLM por semana", "grupo": "custo", "unidade": "chamadas", "sentido": "neutro"},
+    {"id": "eventos_risco", "nome": "Eventos de risco", "grupo": "risco", "unidade": "eventos", "sentido": "menor", "limite": 3}
+  ],
+  "cenarios": [
+    {"id": "mais_1a1", "metrica": "conversa_7d", "alavanca": "uns_1a1_7d", "valor": 6, "descricao": "Se a gestora subir para 6 conversas 1:1 por semana"}
+  ]
+}

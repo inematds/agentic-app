@@ -38,7 +38,7 @@
   .mut{color:var(--mut)} .amb{color:var(--amb)}
   .chip{display:inline-block;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amb);font-weight:600;font-family:Sora}
   nav{position:sticky;top:0;z-index:30;backdrop-filter:blur(12px);background:rgba(12,12,16,.78);border-bottom:1px solid var(--line)}
-  nav .wrap{display:flex;align-items:center;gap:22px;height:60px}
+  nav .wrap{display:flex;align-items:center;gap:16px;height:60px}
   nav .brand{display:flex;align-items:center;gap:8px;font-family:Sora;font-weight:800;letter-spacing:-.02em;color:var(--amb)}
   nav .brand .emoji{font-size:1.25rem}
   nav .sep{color:var(--mut);opacity:.45}
@@ -47,7 +47,7 @@
   nav .pro{color:var(--pro);font-weight:600;font-size:.88rem;font-family:Sora}
   nav .pro:hover{filter:brightness(1.15)}
   nav .clubpro{display:inline-flex;align-items:center;gap:6px}
-  nav .links{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:.92rem}
+  nav .links{margin-left:auto;display:flex;align-items:center;gap:11px;font-size:.88rem}
   nav .links a.sec{color:var(--mut)} nav .links a.sec:hover{color:var(--txt)}
   .lang{display:inline-flex;gap:2px;font-family:Sora;font-size:.78rem}
   .lang a{color:var(--mut);padding:.2em .45em;border-radius:6px} .lang a.on{color:var(--amb);background:rgba(250,204,21,.12)}
@@ -133,6 +133,7 @@
     <a class="sec" href="#pilares">Pillars</a>
     <a class="sec" href="#guia">Usage guide</a>
     <a class="sec" href="#executivo">Executive</a>
+    <a class="sec" href="#tendencias">Trends</a>
     <a class="sec" href="#videos">Videos</a>
     <a class="sec" href="#encaixe">Where it fits</a>
     <span class="lang"><a href="../">PT</a><a class="on" href="./">EN</a><a href="../es/">ES</a></span>
@@ -233,10 +234,10 @@
 
   <div class="step"><div class="b">1</div><div>
     <h3>Download and run the tests</h3>
-    <p>62 checks, no network. The last line must be OK.</p>
+    <p>75 checks, no network. The last line must be OK.</p>
 <pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
 <span class="k">cd</span> agentic-app
-<span class="k">bash</span> tests/run.sh          <span class="c"># 62 checks, 0 failures → OK</span></pre>
+<span class="k">bash</span> tests/run.sh          <span class="c"># 75 checks, 0 failures → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
@@ -330,6 +331,24 @@
   </div>
 </div></section>
 
+<section id="tendencias"><div class="wrap">
+  <span class="chip">Trends · 1.2.0</span>
+  <h2>The movie, not the snapshot: where are the numbers heading?</h2>
+  <p class="sub">The executive dashboard shows whether the app delivers now. The trends dashboard uses the weekly history to give each number's pace, when the target is reached (or that it is not reached this quarter) and what is getting worse before it becomes a problem.</p>
+  <div class="exec">
+    <div class="grid">
+      <div class="card"><h3>📈 Pace and projection</h3><p>Simple linear regression over the weeks: "at the current pace, the target is reached on DD/MM" or "not reached by the end of the quarter". A target already met but worsening shows the date it is lost.</p></div>
+      <div class="card"><h3>⚠️ Early signals</h3><p>Three weeks in a row in the bad direction become an alert. In the demo: average engagement falling for 8 weeks and 4 people with 3 drops in a row (Carla, Henrique, Elisa, Lucas).</p></div>
+      <div class="card"><h3>🔀 What-if scenarios</h3><p>An explicit rule in code: each extra one-on-one per week covers one person with an overdue goal. With 5 a week, 42.9% becomes 76.2% and the 90% target arrives on 28/12/2026.</p></div>
+      <div class="card"><h3>🗓️ History that builds itself</h3><p>The <code>snapshot_indicadores</code> workflow writes the week's snapshot every Monday 07:00 to <code>saida/historico.jsonl</code>. With fewer than 4 weeks, the dashboard says "not enough history".</p></div>
+      <div class="card"><h3>🔒 Strategy, board and admin</h3><p>The <code>painel_tendencias</code> workflow with a read-only identity. The LLM only stitches the narrative from sentences already computed; swapping the LLM changes no number.</p>
+<pre><span class="k">python3</span> -m agentic_app.demo   <span class="c"># section 11: snapshot + trends</span>
+<span class="c"># http://127.0.0.1:8765/tendencias?usuario=estela</span></pre></div>
+    </div>
+    <figure><img src="../assets/tendencias.jpg" alt="Trends dashboard with narrative, early signals and line charts with moving average, target and projection" loading="lazy"><figcaption>Real demo screenshot (12 weeks, labeled example history): coverage grows 1.3 p.p. a week and does not reach 90% by 31/12/2026; engagement leaves its target on 02/12/2026.</figcaption></figure>
+  </div>
+</div></section>
+
 <section id="videos" class="videos"><div class="wrap">
   <span class="chip">Videos</span>
   <h2>See the framework in action</h2>
@@ -356,9 +375,10 @@
 <section id="roadmap"><div class="wrap">
   <span class="chip">Roadmap</span>
   <h2>What exists and what comes next</h2>
-  <p class="sub">Version 1.0.0 is the complete core with one reference app. 1.1.0 adds the executive dashboard.</p>
+  <p class="sub">Version 1.0.0 is the complete core with one reference app. 1.1.0 adds the executive dashboard and 1.2.0 the trends dashboard.</p>
   <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Core + Manager coaching</strong><span>Engine with 5 node types, FakeLLM and local Ollama, approval queue, roles and identities, hashed audit, 3 trigger types, vacation and leave policy, HTML/PDF report, web panel, 48 checks.</span></div></div>
   <div class="phase"><div class="tag">1.1.0</div><div class="d"><strong>Executive dashboard</strong><span>Canvas result against target, agent operations, control and risk, LLM cost and rule-based alerts; board role; HTML and PDF; 62 checks.</span></div></div>
+  <div class="phase"><div class="tag">1.2.0</div><div class="d"><strong>Trends</strong><span>Weekly history with automatic snapshot, pace by regression, projection to target, early signals, comparison between people and what-if scenarios; strategy role; 75 checks.</span></div></div>
   <div class="phase"><div class="tag">Next</div><div class="d"><strong>More reference apps</strong><span>Other processes using the same engine, each with its own canvas, policies and tests.</span></div></div>
   <div class="phase"><div class="tag">Later</div><div class="d"><strong>Production connectors</strong><span>Examples of an SMTP executor, corporate login on the panel and database reads in the context node.</span></div></div>
 </div></section>
