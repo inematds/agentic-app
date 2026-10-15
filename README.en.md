@@ -17,8 +17,9 @@ Full guide (landing + step by step): **https://inematds.github.io/agentic-app/gu
 ```bash
 git clone https://github.com/inematds/agentic-app
 cd agentic-app
-bash tests/run.sh                 # 93 checks, no network -> last line OK
+bash tests/run.sh                 # 104 checks, no network -> last line OK
 python3 -m agentic_app.demo       # runs the 5 workflows, generates saida/relatorio.html and saida/executivo.html
+python3 -m agentic_app.simular    # optional: 8 weeks of simulated (fictitious) operation to fill the charts
 python3 -m agentic_app.serve      # panel at http://127.0.0.1:8765 (executive: /executivo?usuario=dora · command center: /comando?usuario=otavio)
 ```
 
@@ -110,6 +111,27 @@ audit. Settings in `templates/comando.json`.
 ![Command Center: agents](guia/assets/comando-agentes.jpg)
 ![Command Center: business](guia/assets/comando-negocio.jpg)
 
+## Dashboards in the overview → detail pattern (1.4.0)
+
+The four dashboards (Agents, Business, Executive and Trends) share one BI layout with a single navigation bar:
+**number cards on top, filters on the side, charts in the middle and the detail with actions below**. Clicking a bar,
+a day, a slice or a card adds that filter and the detail shows only that (click again to remove it).
+
+- URL filters (`?periodo=7d&workflow=assistente_rh&situacao=falha&dia=2026-10-14`): a filtered view can be saved and
+  shared. Unknown values fall back to the default, never an error.
+- Agents: runs per day and per hour, per workflow, per trigger, per status, approval queue by age with SLA and draft
+  outcomes. Business: the canvas metric per week against its target, people per situation, risk reasons and
+  engagement per person. Executive: runs per week, usage and LLM calls per workflow, denials per role. Trends: each
+  metric with moving average, target and projection, filterable by group and projection status.
+- Plain SVG charts (`graficos.py`), no library or CDN; hover tooltips; status color always with a label and legend.
+- `python3 -m agentic_app.simular` runs 8 weeks through the real engine with a simulated clock (fictitious,
+  deterministic) so the charts have something to show. The screenshots below come from that simulation.
+- Fix: the weekly trends snapshot now records the week (last 7 days). Before, it stored runs, calls and cost
+  accumulated since the start.
+
+![Agents dashboard](guia/assets/comando-agentes.jpg)
+![Executive dashboard](guia/assets/executivo-bi.jpg)
+
 ## Repository map
 
 | Path | What it is |
@@ -125,10 +147,12 @@ audit. Settings in `templates/comando.json`.
 | `agentic_app/executivo.py` | executive dashboard: result, operations, control and cost indicators + rule-based alerts |
 | `agentic_app/tendencias.py` | trends dashboard: weekly history, pace, projection, signals and scenarios |
 | `agentic_app/comando.py`, `comando_html.py` | Command Center: Agent Control Tower (agents) + Mission Control (business), with actions |
+| `agentic_app/painel_bi.py`, `graficos.py`, `visao.py`, `paineis_html.py` | shared layout of the four dashboards, SVG charts, filters and aggregation, executive and trends pages |
+| `agentic_app/simular.py` | 8 weeks of simulated (fictitious) operation through the real engine |
 | `templates/` | canvas, workflow template, policy template + test, permissions matrix, executive indicators, trends |
 | `docs/PASSO-A-PASSO.md` | from zero to rollout in a company (13 steps + checklist) — in Portuguese |
 | `docs/ARQUITETURA.md` | how the pieces fit together — in Portuguese |
-| `tests/` | `run.sh` (93 checks, no network) and `prova_mutacao.sh` |
+| `tests/` | `run.sh` (104 checks, no network) and `prova_mutacao.sh` |
 
 ## Where it fits
 

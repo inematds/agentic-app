@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.4.0 — 2026-10-15
+
+Os quatro painéis (Agentes, Negócio, Executivo, Tendências) no padrão de BI "visão geral → detalhe".
+
+- `agentic_app/painel_bi.py`: layout comum com navegação única entre os quatro painéis, filtros na lateral (bloco
+  recolhível no celular), cartões de número, grade de gráficos e o detalhe com as ações; etiquetas dos filtros ativos.
+- `agentic_app/graficos.py`: colunas empilhadas, barras, rosca e linha em SVG puro; tooltip (`<title>`), legenda com 2+
+  séries, 2 px de vão, ponta arredondada, clique = link de filtro. Ordem de status validada (ok → negado → pausado → falha).
+- `agentic_app/visao.py`: filtros por URL (período, workflow, gatilho, situação, dia) normalizados; agregação da
+  operação (por dia, hora, workflow, gatilho, situação, fila por idade, desfecho dos rascunhos, variação contra o
+  período anterior) e filtros do negócio (situação, risco, motivo).
+- `/comando` = aba Agentes e `/comando/negocio` = aba Negócio; `/executivo` e `/tendencias` com o layout novo
+  (`paineis_html.py`). O relatório HTML/PDF em `saida/` continua igual.
+- `centro_comando` e `painel_executivo` aceitam `filtros` (e `agora`) na entrada; `svc-comando` lê o histórico semanal.
+- `agentic_app/simular.py`: `python3 -m agentic_app.simular` roda 8 semanas pelo motor real com relógio simulado
+  (fictício, determinístico): falhas, negado, pausa, aprovações, rejeições e escalada.
+- Correção: o snapshot semanal gravava execuções, chamadas e custo acumulados desde o início; agora grava os últimos 7 dias.
+- Testes: 104 checks (11 novos em `tests/test_paineis.py`). Docs PT/EN/ES, ARQUITETURA, PASSO-A-PASSO, guia com a seção "Painéis".
+
 ## 1.3.0 — 2026-10-15
 
 Centro de Comando: uma tela para quem opera e acompanha ao vivo, com duas abas e ações.

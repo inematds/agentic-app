@@ -17,8 +17,9 @@ Guía completa (landing + paso a paso): **https://inematds.github.io/agentic-app
 ```bash
 git clone https://github.com/inematds/agentic-app
 cd agentic-app
-bash tests/run.sh                 # 93 checks, sin red -> última línea OK
+bash tests/run.sh                 # 104 checks, sin red -> última línea OK
 python3 -m agentic_app.demo       # corre los 5 workflows, genera saida/relatorio.html y saida/executivo.html
+python3 -m agentic_app.simular    # opcional: 8 semanas de operación simulada (ficticia) para llenar los gráficos
 python3 -m agentic_app.serve      # panel en http://127.0.0.1:8765 (ejecutivo: /executivo?usuario=dora · centro de comando: /comando?usuario=otavio)
 ```
 
@@ -112,6 +113,29 @@ Configuración en `templates/comando.json`.
 ![Centro de Comando: agentes](guia/assets/comando-agentes.jpg)
 ![Centro de Comando: negocio](guia/assets/comando-negocio.jpg)
 
+## Paneles con el patrón visión general → detalle (1.4.0)
+
+Los cuatro paneles (Agentes, Negocio, Ejecutivo y Tendencias) usan el mismo layout de BI, con una sola barra de
+navegación: **tarjetas de números arriba, filtros al costado, gráficos en el medio y el detalle con las acciones
+abajo**. Hacer clic en una barra, un día, una porción o una tarjeta agrega el filtro y el detalle muestra solo eso
+(otro clic lo quita).
+
+- Filtros por URL (`?periodo=7d&workflow=assistente_rh&situacao=falha&dia=2026-10-14`): la vista filtrada se puede
+  guardar y compartir. Un valor desconocido vuelve al predeterminado, nunca da error.
+- Agentes: ejecuciones por día y por hora, por workflow, por disparador, por situación, cola por antigüedad con SLA y
+  desenlace de los borradores. Negocio: la métrica del canvas por semana contra la meta, personas por situación,
+  motivos de riesgo y compromiso por persona. Ejecutivo: ejecuciones por semana, uso y llamadas de LLM por workflow,
+  negados por rol. Tendencias: cada métrica con media móvil, meta y proyección, filtrable por grupo y por situación.
+- Gráficos en SVG puro (`graficos.py`), sin biblioteca ni CDN; tooltip al pasar el mouse; color de estado siempre
+  con etiqueta y leyenda.
+- `python3 -m agentic_app.simular` corre 8 semanas por el motor real con reloj simulado (ficticio, determinista)
+  para que los gráficos tengan qué mostrar. Las capturas de abajo vienen de esa simulación.
+- Corrección: la foto semanal de tendencias ahora guarda la semana (últimos 7 días). Antes guardaba ejecuciones,
+  llamadas y costo acumulados desde el inicio.
+
+![Panel Agentes](guia/assets/comando-agentes.jpg)
+![Panel ejecutivo](guia/assets/executivo-bi.jpg)
+
 ## Mapa del repositorio
 
 | Ruta | Qué es |
@@ -127,10 +151,12 @@ Configuración en `templates/comando.json`.
 | `agentic_app/executivo.py` | panel ejecutivo: indicadores de resultado, operación, control y costo + alertas por regla |
 | `agentic_app/tendencias.py` | panel de tendencias: historial semanal, ritmo, proyección, señales y escenarios |
 | `agentic_app/comando.py`, `comando_html.py` | Centro de Comando: Agent Control Tower (agentes) + Mission Control (negocio), con acciones |
+| `agentic_app/painel_bi.py`, `graficos.py`, `visao.py`, `paineis_html.py` | layout común de los cuatro paneles, gráficos SVG, filtros y agregación, páginas del ejecutivo y de tendencias |
+| `agentic_app/simular.py` | 8 semanas de operación simulada (ficticia) por el motor real |
 | `templates/` | canvas, modelo de workflow, modelo de política + prueba, matriz de permisos, indicadores del ejecutivo, tendencias |
 | `docs/PASSO-A-PASSO.md` | del cero a la implementación en una empresa (13 pasos + checklist), en portugués |
 | `docs/ARQUITETURA.md` | cómo encajan las piezas, en portugués |
-| `tests/` | `run.sh` (93 checks sin red) y `prova_mutacao.sh` |
+| `tests/` | `run.sh` (104 checks sin red) y `prova_mutacao.sh` |
 
 ## Dónde encaja
 

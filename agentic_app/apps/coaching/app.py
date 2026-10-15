@@ -17,7 +17,7 @@ import re
 from datetime import date, datetime
 from pathlib import Path
 
-from ... import comando, config, executivo, tendencias
+from ... import comando, config, executivo, tendencias, visao
 from ...acoes import CaixaSaida, FilaAprovacao
 from ...gatilhos import Gatilhos
 from ...llm import normalizar
@@ -307,11 +307,20 @@ class AppCoaching:
             return {"fila": json.loads(json.dumps(self.fila.itens)), "sugestoes": sug}
 
         @reg.funcao("indicadores_executivos")
-        def _indicadores(equipe, registros, aprovacoes):
-            return executivo.calcular(
+        def _indicadores(equipe, registros, aprovacoes, entrada=None):
+            entrada = entrada or {}  # snapshot_indicadores chama sem entrada
+            d = executivo.calcular(
                 metricas_negocio(equipe, aprovacoes["fila"], indicadores["regra_conversa"]),
                 registros["audit"], aprovacoes["fila"], registros["enviados"], aprovacoes["sugestoes"],
                 indicadores, registros["quebra_na_linha"], equipe["data_referencia"])
+            # visão do período (filtros da página web); o relatório HTML/PDF segue com o acumulado
+            f = visao.normalizar(entrada.get("filtros"), {l.get("workflow") for l in registros["audit"]})
+            # sem 'agora' na entrada, vale o relógio do audit (o real, ou o simulado em agentic_app.simular)
+            agora = datetime.fromisoformat(entrada.get("agora") or self.audit.relogio())
+            d["visao"] = visao.operacao(registros["audit"], aprovacoes["fila"], f, agora,
+                                        ignorar=indicadores.get("ignorar_workflows", ()),
+                                        custo_tab=indicadores.get("custo_por_modelo"))
+            return d
 
         cfg_tend = _ler("tendencias.json")
         self.cfg_tendencias = cfg_tend
@@ -355,8 +364,14 @@ class AppCoaching:
                    for w, s in self.motor.workflows.items()}
             return {"catalogo": cat, "estado": json.loads(json.dumps(self.controle.estado))}
 
+        def _historico_principal(historico, mid):
+            serie = tendencias.juntar(historico["exemplo"], historico["vivo"])
+            return {"semanas": [x["semana"] for x in serie], "serie": [x.get(mid) for x in serie],
+                    "exemplo": bool(historico["exemplo"])}
+
         @reg.funcao("centro_de_comando")
-        def _centro(equipe, registros, aprovacoes, estado, usuario, agora):
+        def _centro(equipe, registros, aprovacoes, estado, usuario, entrada, historico):
+            agora = entrada["agora"]
             papeis = set(usuario["papeis"])
             fila = aprovacoes["fila"]
             vals = metricas_negocio(equipe, fila, indicadores["regra_conversa"])
@@ -371,7 +386,10 @@ class AppCoaching:
             return comando.calcular(estado["catalogo"], estado["estado"], registros["audit"], fila,
                                     registros["enviados"], registros["quebra_na_linha"], cfg,
                                     datetime.fromisoformat(agora), mets, indicadores["metrica_principal"],
-                                    vals[indicadores["metrica_principal"]], fila_de_decisoes(equipe, fila), pode)
+                                    vals[indicadores["metrica_principal"]], fila_de_decisoes(equipe, fila), pode,
+                                    filtros=entrada.get("filtros"),
+                                    historico=_historico_principal(historico, indicadores["metrica_principal"]),
+                                    pessoas=agregar_equipe(equipe)["pessoas"])
 
         reg.funcoes["fatos_para_narrativa"] = tendencias.fatos_para_narrativa
         reg.funcoes["com_narrativa"] = lambda d, narrativa: {**d, "narrativa": narrativa}
@@ -400,9 +418,14 @@ class AppCoaching:
         """Componente 'painel de engajamento': dados direto, sem LLM."""
         return agregar_equipe(self.equipe)
 
-    def executivo(self, usuario, gatilho="manual"):
+    def executivo(self, usuario, gatilho="manual", filtros=None, agora=None):
         """Aba 'painel executivo': workflow painel_executivo (só diretoria/admin; negado = auditado)."""
-        return self.motor.executar("painel_executivo", {}, usuario, gatilho=gatilho)
+        entrada = {}
+        if filtros:
+            entrada["filtros"] = {k: str(v) for k, v in filtros.items() if v}
+        if agora:
+            entrada["agora"] = agora if isinstance(agora, str) else agora.isoformat(timespec="seconds")
+        return self.motor.executar("painel_executivo", entrada, usuario, gatilho=gatilho)
 
     def tendencias(self, usuario, gatilho="manual"):
         """Aba 'tendências': workflow painel_tendencias (estratégia, diretoria, admin; negado = auditado)."""
@@ -413,12 +436,15 @@ class AppCoaching:
         return self.motor.executar("snapshot_indicadores", {}, usuario or self.usuarios["sistema"], gatilho=gatilho)
 
     # ---------------------------------------------------------- Centro de Comando
-    def comando(self, usuario, agora=None, gatilho="manual"):
+    def comando(self, usuario, agora=None, gatilho="manual", filtros=None):
         """Centro de Comando (Agent Control Tower + Mission Control): workflow centro_comando."""
         agora = agora or datetime.now().astimezone()
         if isinstance(agora, datetime):
             agora = agora.isoformat(timespec="seconds")
-        return self.motor.executar("centro_comando", {"agora": agora}, usuario, gatilho=gatilho)
+        entrada = {"agora": agora}
+        if filtros:
+            entrada["filtros"] = {k: str(v) for k, v in filtros.items() if v}
+        return self.motor.executar("centro_comando", entrada, usuario, gatilho=gatilho)
 
     def _wf(self, workflow_id):
         if workflow_id not in self.motor.workflows:

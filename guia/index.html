@@ -135,6 +135,7 @@
     <a class="sec" href="#executivo">Executivo</a>
     <a class="sec" href="#tendencias">Tendências</a>
     <a class="sec" href="#comando">Comando</a>
+    <a class="sec" href="#paineis">Painéis</a>
     <a class="sec" href="#videos">Vídeos</a>
     <a class="sec" href="#encaixe">Onde se encaixa</a>
     <span class="lang"><a class="on" href="./">PT</a><a href="en/">EN</a><a href="es/">ES</a></span>
@@ -235,10 +236,10 @@
 
   <div class="step"><div class="b">1</div><div>
     <h3>Baixe e rode os testes</h3>
-    <p>93 checks, sem rede. A última linha tem que ser OK.</p>
+    <p>104 checks, sem rede. A última linha tem que ser OK.</p>
 <pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
 <span class="k">cd</span> agentic-app
-<span class="k">bash</span> tests/run.sh          <span class="c"># 93 checks, 0 falhas → OK</span></pre>
+<span class="k">bash</span> tests/run.sh          <span class="c"># 104 checks, 0 falhas → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
@@ -364,8 +365,28 @@
 <span class="c"># http://127.0.0.1:8765/comando?usuario=otavio</span></pre></div>
     </div>
     <div style="display:grid;gap:14px">
-      <figure><img src="assets/comando-agentes.jpg" alt="Aba Agentes do Centro de Comando com semáforo por workflow, próximo disparo e botões de pausar, rodar agora e reexecutar" loading="lazy"><figcaption>Aba Agentes (print real da demo): 6 workflows de operação no verde, próximos disparos e ações por workflow.</figcaption></figure>
-      <figure><img src="assets/comando-negocio.jpg" alt="Aba Negócio do Centro de Comando com a métrica do canvas, quanto falta para a meta e a fila de decisão por pessoa" loading="lazy"><figcaption>Aba Negócio: 42,9% contra a meta de 90%, faltam 4 conversas, e a fila de quem precisa de ação.</figcaption></figure>
+      <figure><img src="assets/comando-agentes.jpg" alt="Aba Agentes do Centro de Comando com semáforo por workflow, próximo disparo e botões de pausar, rodar agora e reexecutar" loading="lazy"><figcaption>Aba Agentes no layout 1.4.0 (8 semanas simuladas): cartões, filtros na lateral, execuções por dia com a situação em cor.</figcaption></figure>
+      <figure><img src="assets/comando-negocio.jpg" alt="Aba Negócio do Centro de Comando com a métrica do canvas, quanto falta para a meta e a fila de decisão por pessoa" loading="lazy"><figcaption>Aba Negócio: a métrica do canvas por semana contra a meta, pessoas por situação e motivos de risco.</figcaption></figure>
+    </div>
+  </div>
+</div></section>
+
+<section id="paineis"><div class="wrap">
+  <span class="chip">Painéis · 1.4.0</span>
+  <h2>Os quatro painéis no mesmo padrão: visão geral primeiro, detalhe depois</h2>
+  <p class="sub">Agentes, Negócio, Executivo e Tendências ganharam o layout dos painéis de BI: números grandes no topo, filtros na lateral, gráficos no meio e, embaixo, o detalhe com as ações. Clicar num gráfico filtra o resto da página.</p>
+  <div class="exec">
+    <div class="grid">
+      <div class="card"><h3>🧭 Navegação única</h3><p>Uma barra no topo leva aos quatro painéis. Cada um continua com o seu papel: quem não pode ver recebe 403 e a tentativa fica no audit.</p></div>
+      <div class="card"><h3>🔎 Clique para detalhar</h3><p>Barra, dia, fatia ou cartão viram filtro (<code>?workflow=…&amp;situacao=falha</code>). Os filtros ativos aparecem como etiquetas; clicar de novo tira. O link pode ser guardado e compartilhado.</p></div>
+      <div class="card"><h3>📊 SVG puro</h3><p>Colunas, barras, roscas e linhas desenhadas em Python, sem biblioteca nem CDN. Tooltip ao passar o mouse, legenda sempre que há duas ou mais séries, cor de status sempre com rótulo.</p></div>
+      <div class="card"><h3>🧪 8 semanas simuladas</h3><p><code>python3 -m agentic_app.simular</code> roda o motor de verdade com relógio simulado (fictício, sempre igual) para os gráficos terem o que mostrar.</p>
+<pre><span class="k">python3</span> -m agentic_app.simular
+<span class="k">python3</span> -m agentic_app.serve</pre></div>
+    </div>
+    <div style="display:grid;gap:14px">
+      <figure><img src="assets/executivo-bi.jpg" alt="Painel executivo no layout de BI com cartões, filtro de período e execuções por semana" loading="lazy"><figcaption>Executivo: cartões do canvas, execuções por semana e uso por workflow, com filtro de período.</figcaption></figure>
+      <figure><img src="assets/tendencias-bi.jpg" alt="Painel de tendências no layout de BI com cartões por métrica e gráficos de projeção" loading="lazy"><figcaption>Tendências: um cartão e um gráfico por métrica, filtráveis por grupo e por situação da projeção.</figcaption></figure>
     </div>
   </div>
 </div></section>
@@ -396,11 +417,12 @@
 <section id="roadmap"><div class="wrap">
   <span class="chip">Roadmap</span>
   <h2>O que já existe e o que vem depois</h2>
-  <p class="sub">A versão 1.0.0 é o núcleo completo com um app de referência. A 1.1.0 acrescenta o painel executivo a 1.2.0, o de tendências, e a 1.3.0, o Centro de Comando.</p>
+  <p class="sub">A versão 1.0.0 é o núcleo completo com um app de referência. Depois vieram o painel executivo (1.1.0), o de tendências (1.2.0), o Centro de Comando (1.3.0) e o layout comum de BI nos quatro painéis (1.4.0).</p>
   <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Núcleo + Coaching de gestor</strong><span>Motor com 5 tipos de nó, FakeLLM e Ollama local, fila de aprovação, papéis e identidades, audit com hash, 3 tipos de gatilho, política de férias e licença, relatório HTML/PDF, painel web, 48 checks.</span></div></div>
   <div class="phase"><div class="tag">1.1.0</div><div class="d"><strong>Painel executivo</strong><span>Resultado do canvas contra a meta, operação dos agentes, controle e risco, custo de LLM e alertas por regra; papel diretoria; HTML e PDF; 62 checks.</span></div></div>
   <div class="phase"><div class="tag">1.2.0</div><div class="d"><strong>Tendências</strong><span>Histórico semanal com snapshot automático, ritmo por regressão, projeção até a meta, sinais antecipados, comparação entre pessoas e cenários "e se"; papel estratégia; 75 checks.</span></div></div>
   <div class="phase"><div class="tag">1.3.0</div><div class="d"><strong>Centro de Comando</strong><span>Agent Control Tower (semáforo por workflow, fila por idade com SLA, falhas, eventos) e Mission Control (métrica do canvas, quanto falta, fila de decisão), com ações: pausar, retomar, rodar agora, reexecutar, escalar, acionar, aprovar; papel operação; 93 checks.</span></div></div>
+  <div class="phase"><div class="tag">1.4.0</div><div class="d"><strong>Visão geral → detalhe nos quatro painéis</strong><span>Layout comum de BI com navegação única, cartões, filtros na lateral, gráficos SVG clicáveis e detalhe com ações; simulação de 8 semanas; snapshot semanal corrigido; 104 checks.</span></div></div>
   <div class="phase"><div class="tag">Próximo</div><div class="d"><strong>Mais apps de referência</strong><span>Outros processos usando o mesmo motor, cada um com o seu canvas, suas políticas e seus testes.</span></div></div>
   <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Conectores de produção</strong><span>Exemplos de executor SMTP, login corporativo no painel e leitura de banco no nó de contexto.</span></div></div>
 </div></section>

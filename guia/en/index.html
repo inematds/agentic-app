@@ -135,6 +135,7 @@
     <a class="sec" href="#executivo">Executive</a>
     <a class="sec" href="#tendencias">Trends</a>
     <a class="sec" href="#comando">Command</a>
+    <a class="sec" href="#paineis">Dashboards</a>
     <a class="sec" href="#videos">Videos</a>
     <a class="sec" href="#encaixe">Where it fits</a>
     <span class="lang"><a href="../">PT</a><a class="on" href="./">EN</a><a href="../es/">ES</a></span>
@@ -235,10 +236,10 @@
 
   <div class="step"><div class="b">1</div><div>
     <h3>Download and run the tests</h3>
-    <p>93 checks, no network. The last line must be OK.</p>
+    <p>104 checks, no network. The last line must be OK.</p>
 <pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/agentic-app</span>
 <span class="k">cd</span> agentic-app
-<span class="k">bash</span> tests/run.sh          <span class="c"># 93 checks, 0 failures → OK</span></pre>
+<span class="k">bash</span> tests/run.sh          <span class="c"># 104 checks, 0 failures → OK</span></pre>
   </div></div>
 
   <div class="step"><div class="b">2</div><div>
@@ -364,8 +365,28 @@
 <span class="c"># http://127.0.0.1:8765/comando?usuario=otavio</span></pre></div>
     </div>
     <div style="display:grid;gap:14px">
-      <figure><img src="../assets/comando-agentes.jpg" alt="Command Center Agents tab with a traffic light per workflow, next scheduled run and pause, run now and re-run buttons" loading="lazy"><figcaption>Agents tab (real demo screenshot): 6 operational workflows in green, next runs and per-workflow actions.</figcaption></figure>
-      <figure><img src="../assets/comando-negocio.jpg" alt="Command Center Business tab with the canvas metric, what is missing for the target and the decision queue per person" loading="lazy"><figcaption>Business tab: 42.9% against a 90% target, 4 conversations missing, and the queue of who needs action.</figcaption></figure>
+      <figure><img src="../assets/comando-agentes.jpg" alt="Command Center Agents tab with a traffic light per workflow, next scheduled run and pause, run now and re-run buttons" loading="lazy"><figcaption>Agents tab in the 1.4.0 layout (8 simulated weeks): cards, side filters, runs per day colored by status.</figcaption></figure>
+      <figure><img src="../assets/comando-negocio.jpg" alt="Command Center Business tab with the canvas metric, what is missing for the target and the decision queue per person" loading="lazy"><figcaption>Business tab: the canvas metric per week against its target, people per situation and risk reasons.</figcaption></figure>
+    </div>
+  </div>
+</div></section>
+
+<section id="paineis"><div class="wrap">
+  <span class="chip">Dashboards · 1.4.0</span>
+  <h2>All four dashboards in the same pattern: overview first, detail next</h2>
+  <p class="sub">Agents, Business, Executive and Trends now use the BI dashboard layout: big numbers on top, filters on the side, charts in the middle and, below, the detail with actions. Clicking a chart filters the rest of the page.</p>
+  <div class="exec">
+    <div class="grid">
+      <div class="card"><h3>🧭 One navigation bar</h3><p>A bar at the top leads to the four dashboards. Each keeps its own role: whoever cannot see it gets a 403 and the attempt goes to the audit.</p></div>
+      <div class="card"><h3>🔎 Click to drill down</h3><p>A bar, day, slice or card becomes a filter (<code>?workflow=…&amp;situacao=falha</code>). Active filters show as chips; click again to remove. The link can be saved and shared.</p></div>
+      <div class="card"><h3>📊 Plain SVG</h3><p>Columns, bars, donuts and lines drawn in Python, no library or CDN. Hover tooltips, a legend whenever there are two or more series, status color always with a label.</p></div>
+      <div class="card"><h3>🧪 8 simulated weeks</h3><p><code>python3 -m agentic_app.simular</code> runs the real engine with a simulated clock (fictitious, always the same) so the charts have something to show.</p>
+<pre><span class="k">python3</span> -m agentic_app.simular
+<span class="k">python3</span> -m agentic_app.serve</pre></div>
+    </div>
+    <div style="display:grid;gap:14px">
+      <figure><img src="../assets/executivo-bi.jpg" alt="Executive dashboard in the BI layout with cards, period filter and runs per week" loading="lazy"><figcaption>Executive: canvas cards, runs per week and usage per workflow, with a period filter.</figcaption></figure>
+      <figure><img src="../assets/tendencias-bi.jpg" alt="Trends dashboard in the BI layout with one card per metric and projection charts" loading="lazy"><figcaption>Trends: one card and one chart per metric, filterable by group and projection status.</figcaption></figure>
     </div>
   </div>
 </div></section>
@@ -396,11 +417,12 @@
 <section id="roadmap"><div class="wrap">
   <span class="chip">Roadmap</span>
   <h2>What exists and what comes next</h2>
-  <p class="sub">Version 1.0.0 is the complete core with one reference app. 1.1.0 adds the executive dashboard 1.2.0 the trends dashboard and 1.3.0 the Command Center.</p>
+  <p class="sub">Version 1.0.0 is the complete core with one reference app. Then came the executive dashboard (1.1.0), the trends dashboard (1.2.0), the Command Center (1.3.0) and the shared BI layout across the four dashboards (1.4.0).</p>
   <div class="phase"><div class="tag">1.0.0</div><div class="d"><strong>Core + Manager coaching</strong><span>Engine with 5 node types, FakeLLM and local Ollama, approval queue, roles and identities, hashed audit, 3 trigger types, vacation and leave policy, HTML/PDF report, web panel, 48 checks.</span></div></div>
   <div class="phase"><div class="tag">1.1.0</div><div class="d"><strong>Executive dashboard</strong><span>Canvas result against target, agent operations, control and risk, LLM cost and rule-based alerts; board role; HTML and PDF; 62 checks.</span></div></div>
   <div class="phase"><div class="tag">1.2.0</div><div class="d"><strong>Trends</strong><span>Weekly history with automatic snapshot, pace by regression, projection to target, early signals, comparison between people and what-if scenarios; strategy role; 75 checks.</span></div></div>
   <div class="phase"><div class="tag">1.3.0</div><div class="d"><strong>Command Center</strong><span>Agent Control Tower (traffic light per workflow, queue by age with SLA, failures, events) and Mission Control (canvas metric, how much is missing, decision queue), with actions: pause, resume, run now, re-run, escalate, trigger, approve; operations role; 93 checks.</span></div></div>
+  <div class="phase"><div class="tag">1.4.0</div><div class="d"><strong>Overview → detail on all four dashboards</strong><span>Shared BI layout with one navigation bar, cards, side filters, clickable SVG charts and detail with actions; 8-week simulation; weekly snapshot fixed; 104 checks.</span></div></div>
   <div class="phase"><div class="tag">Next</div><div class="d"><strong>More reference apps</strong><span>Other processes using the same engine, each with its own canvas, policies and tests.</span></div></div>
   <div class="phase"><div class="tag">Later</div><div class="d"><strong>Production connectors</strong><span>Examples of an SMTP executor, corporate login on the panel and database reads in the context node.</span></div></div>
 </div></section>

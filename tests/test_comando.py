@@ -153,7 +153,7 @@ class TestCentroDeComando(BaseApp):
         self.assertEqual([(m["id"], m["valor"], m["atingiu"]) for m in n["metricas"]],
                          [(m["id"], m["valor"], m["atingiu"]) for m in ex])
         self.assertEqual(n["faltam"], 4)   # 90% de 7 vencidas = 7 (arredonda para cima) - 3 cobertas
-        ordem = [comando_ord for comando_ord in (x["situacao"] for x in n["decisoes"])]
+        ordem = [x["situacao"] for x in n["decisoes"]]
         pesos = {"sem_acao": 0, "rejeitado": 1, "rascunho_pendente": 2, "enviado": 3}
         self.assertEqual(ordem, sorted(ordem, key=pesos.get))
         enviados = {e["para"] for e in self.app.caixa.enviados()}
@@ -176,8 +176,11 @@ class TestCentroDeComando(BaseApp):
     def test_rotas_get_e_post(self):
         st, _, corpo = tratar("GET", f"/comando?usuario=otavio&agora={DEPOIS}", uid="bruno", a=self.app)
         self.assertEqual(st, 200)
-        for trecho in ("Control Tower", "Mission Control", "Fila de decisão", 'data-acao="pausar"'):
+        for trecho in ("Control Tower", "Mission Control", "Execuções por dia", 'data-acao="pausar"', "<svg"):
             self.assertIn(trecho.encode(), corpo)
+        st, _, corpo = tratar("GET", f"/comando/negocio?usuario=ana&agora={DEPOIS}", uid="bruno", a=self.app)
+        self.assertEqual(st, 200)
+        self.assertIn("Fila de decisão".encode(), corpo)
         st, _, corpo = tratar("GET", "/comando", uid="bruno", a=self.app)
         self.assertEqual(st, 403)
         self.assertIn(b"Acesso negado", corpo)

@@ -75,6 +75,7 @@ ESQUEMA = {
             "required": ["chamadas", "tokens_estimados", "por_workflow", "por_modelo", "custo_total", "moeda"],
             "properties": {"chamadas": _int, "tokens_estimados": _int, "por_workflow": _obj, "por_modelo": _obj,
                            "custo_total": {"type": "number", "minimum": 0}, "moeda": {"type": "string"}}},
+        "visao": {"type": "object"},
         "alertas": {"type": "array", "minItems": 3, "items": {
             "type": "object", "additionalProperties": False, "required": ["nivel", "texto"],
             "properties": {"nivel": {"type": "string", "enum": list(NIVEIS)},

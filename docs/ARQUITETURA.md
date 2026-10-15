@@ -155,6 +155,26 @@ Regras (todas em `tendencias.py`, testadas):
   sinais do agente de fundo + situação na fila de aprovação), ordenada por "sem ação" primeiro.
 - `run_id` continua a numeração do audit quando o app reinicia (antes recomeçava em 0001).
 
+## Painéis visão geral → detalhe (1.4.0)
+
+```
+ URL ?periodo&workflow&gatilho&situacao&dia ──► entrada.filtros do workflow (centro_comando, painel_executivo)
+                                                 └► visao.operacao(audit, fila, filtros, agora) → cartões, séries, detalhe
+ painel_bi.pagina (navegação + filtros + cartões + grade de gráficos + detalhe)  ◄── graficos.py (SVG puro)
+   /comando (Agentes) · /comando/negocio (Negócio) · /executivo · /tendencias
+```
+
+- Cada gráfico ignora o PRÓPRIO filtro (o de workflow continua mostrando todos os workflows, com o escolhido em
+  destaque) e respeita os outros; o detalhe respeita todos. `visao.normalizar` troca valor desconhecido pelo padrão.
+- Negócio e tendências filtram na página (a saída do workflow já tem tudo); agentes e executivo filtram no workflow,
+  porque precisam reler o audit com a janela de tempo. `agora` vem de `?agora=` ou do relógio do audit.
+- Série de status em ordem fixa ok → negado → pausado → falha: o validador de paleta reprova laranja ao lado de
+  vermelho no modo claro; sempre com legenda, tooltip (`<title>`) e vão de 2 px entre segmentos.
+- `simular.py`: relógio simulado injetado no `AuditLog`; roda os workflows, gatilhos, aprovações, pausa e escalada
+  pelo motor real, com semente fixa. As linhas do audit são reais (corrente íntegra), os dados são fictícios.
+- `snapshot_indicadores` passa `{"filtros": {"periodo": "7d"}}` ao cálculo executivo: execuções, chamadas, custo,
+  confiança e negados da semana, e não mais o acumulado desde o início.
+
 ## Trocar o LLM
 
 `FakeLLM` é determinístico e é o que os testes usam. `OllamaLLM` (`AGENTIC_LLM=ollama`) fala só com

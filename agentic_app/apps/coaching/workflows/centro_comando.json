@@ -6,15 +6,17 @@
   "seguranca": {"executar": ["operacao", "admin", "gestor", "diretoria"], "identidade": "svc-comando"},
   "gatilhos": [{"tipo": "manual", "componente": "aba_comando"}],
   "entrada": {"type": "object", "required": ["agora"], "additionalProperties": false,
-              "properties": {"agora": {"type": "string", "minLength": 16}}},
+              "properties": {"agora": {"type": "string", "minLength": 16},
+                             "filtros": {"type": "object"}}},
   "nos": [
     {"id": "ctx", "tipo": "contexto", "carregar": "equipe"},
     {"id": "registros", "tipo": "contexto", "carregar": "registros_operacao"},
     {"id": "aprovacoes", "tipo": "contexto", "carregar": "aprovacoes"},
     {"id": "estado", "tipo": "contexto", "carregar": "estado_comando"},
+    {"id": "historico", "tipo": "contexto", "carregar": "historico"},
     {"id": "painel", "tipo": "codigo", "funcao": "centro_de_comando",
      "args": {"equipe": "$ctx", "registros": "$registros", "aprovacoes": "$aprovacoes", "estado": "$estado",
-              "usuario": "$usuario", "agora": "$entrada.agora"}},
+              "usuario": "$usuario", "entrada": "$entrada", "historico": "$historico"}},
     {"id": "saida", "tipo": "formatacao", "saida": "$painel",
      "esquema": {"type": "object", "required": ["saude", "agentes", "negocio", "pode"]}}
   ]

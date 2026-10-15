@@ -130,6 +130,10 @@ falta para a meta, e agir na hora.
    O número "faltam N" diz quantas conversas ainda separam a métrica da meta.
 5. Em produção, troque o `?usuario=` da demo pelo login corporativo e guarde `comando.json` junto com o audit.
 
+6. Use os filtros da lateral e clique nos gráficos para ir da visão geral ao detalhe (ex.: clicar em "falha" mostra
+   só as execuções que falharam, com o botão de reexecutar). Guarde os links filtrados que a equipe usa todo dia.
+   Para testar o painel antes de ter histórico real: `python3 -m agentic_app.simular` (8 semanas fictícias).
+
 **Deu certo quando:** nenhuma aprovação fica parada além do SLA sem alguém ver, uma falha de agente é pausada antes
 de gerar dano, e a equipe sabe de manhã quantas conversas faltam para a meta.
 

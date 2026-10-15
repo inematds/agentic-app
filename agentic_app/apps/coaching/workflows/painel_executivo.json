@@ -5,13 +5,14 @@
   "resultado_de_negocio": "Mostra a quem patrocina o app se ele entrega a métrica do canvas, com controle e a que custo.",
   "seguranca": {"executar": ["diretoria", "admin"], "identidade": "svc-diretoria"},
   "gatilhos": [{"tipo": "manual", "componente": "aba_executivo"}],
-  "entrada": {"type": "object", "additionalProperties": false},
+  "entrada": {"type": "object", "additionalProperties": false,
+              "properties": {"filtros": {"type": "object"}, "agora": {"type": "string", "minLength": 16}}},
   "nos": [
     {"id": "ctx", "tipo": "contexto", "carregar": "equipe"},
     {"id": "registros", "tipo": "contexto", "carregar": "registros_operacao"},
     {"id": "aprovacoes", "tipo": "contexto", "carregar": "aprovacoes"},
     {"id": "indicadores", "tipo": "codigo", "funcao": "indicadores_executivos",
-     "args": {"equipe": "$ctx", "registros": "$registros", "aprovacoes": "$aprovacoes"}},
+     "args": {"equipe": "$ctx", "registros": "$registros", "aprovacoes": "$aprovacoes", "entrada": "$entrada"}},
     {"id": "saida", "tipo": "formatacao", "saida": "$indicadores",
      "esquema": {"type": "object", "required": ["negocio", "operacao", "controle", "custo", "alertas"]},
      "artefato": {"tipo": "executivo", "html": "executivo.html", "pdf": "executivo.pdf"}}

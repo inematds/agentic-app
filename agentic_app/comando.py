@@ -22,6 +22,7 @@ import math
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from . import visao
 from .esquema import validar
 from .executivo import bloco_controle, bloco_custo, NIVEIS
 from .seguranca import PermissaoNegada
@@ -48,8 +49,10 @@ ESQUEMA = {
                                 "acionar": {"type": "object"}}},
         "agentes": {
             "type": "object", "additionalProperties": False,
-            "required": ["saude", "workflows", "fila", "problemas", "eventos", "controle", "custo", "sla_horas"],
+            "required": ["saude", "workflows", "fila", "problemas", "eventos", "controle", "custo", "sla_horas", "visao"],
             "properties": {
+                "visao": {"type": "object", "required": ["filtros", "kpis", "por_dia", "por_hora", "por_workflow",
+                                                         "por_gatilho", "por_situacao", "fila_idade", "desfecho", "detalhe"]},
                 "saude": {"type": "string", "enum": list(SAUDE)},
                 "sla_horas": {"type": "number", "minimum": 0},
                 "workflows": {"type": "array", "items": {
@@ -71,8 +74,11 @@ ESQUEMA = {
             }},
         "negocio": {
             "type": "object", "additionalProperties": False,
-            "required": ["saude", "metricas", "principal", "faltam", "decisoes", "pendentes", "alertas"],
+            "required": ["saude", "metricas", "principal", "faltam", "decisoes", "pendentes", "alertas",
+                         "pessoas", "historico"],
             "properties": {
+                "pessoas": {"type": "array"},
+                "historico": {"type": "object", "required": ["semanas", "serie", "exemplo"]},
                 "saude": {"type": "string", "enum": list(SAUDE)},
                 "principal": _txt, "faltam": _int,
                 "metricas": {"type": "array", "minItems": 1},
@@ -299,7 +305,7 @@ def torre(catalogo: dict, estado: dict, audit: list, fila: list, enviados: list,
                                              "motivo": None if entrada is not None else quem}})
     problemas = problemas[-cfg.get("problemas_max", 10):][::-1]
 
-    feed = [{"ts": l["ts"], "evento": l.get("evento"), "texto": _evento_texto(l)}
+    feed = [{"ts": l["ts"], "evento": l.get("evento"), "workflow": l.get("workflow"), "texto": _evento_texto(l)}
             for l in audit if l.get("workflow") not in ignorar]
     feed = feed[-cfg.get("eventos_no_feed", 15):][::-1]
 
@@ -381,11 +387,25 @@ def _saude_de(alertas):
 
 
 def calcular(catalogo, estado, audit, fila, enviados, quebra, cfg, agora, metricas, principal, conversa,
-             decisoes, pode) -> dict:
+             decisoes, pode, filtros=None, historico=None, pessoas=None) -> dict:
     t = torre(catalogo, estado, audit, fila, enviados, quebra, cfg, agora, pode["controlar"])
+    f = visao.normalizar(filtros, catalogo)
+    v = visao.operacao(audit, fila, f, agora, t["sla_horas"], cfg.get("ignorar_workflows", ()),
+                       cfg.get("custo_por_modelo"))
+    por_run = {l["run_id"]: l for l in audit if l.get("evento") == "workflow.executado" and l.get("run_id")}
+    for x in v["detalhe"]:
+        l = por_run.get(x["run_id"])
+        if x["situacao"] in ("ok", "negado") or l is None or l["workflow"] not in catalogo:
+            x["reexecutar"] = None
+            continue
+        entrada, quem = reexecucao(l, catalogo[l["workflow"]], cfg.get("executar_como", "sistema"))
+        x["reexecutar"] = {"pode": entrada is not None, "motivo": None if entrada is not None else quem}
+    t["visao"] = v
     al_ag = alertas_agentes(t)
     t["saude"] = _saude_de(al_ag)
     n = missao(metricas, principal, conversa, decisoes, t["fila"])
+    n["pessoas"] = list(pessoas or [])
+    n["historico"] = historico or {"semanas": [], "serie": [], "exemplo": False}
     ordem = {s: i for i, s in enumerate(SAUDE)}
     d = {"gerado_em": aware(agora).isoformat(timespec="seconds"),
          "saude": min(t["saude"], n["saude"], key=lambda s: ordem[s]),

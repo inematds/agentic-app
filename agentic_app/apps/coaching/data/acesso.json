@@ -14,7 +14,7 @@
     {"id": "svc-rh", "escopos": ["rh.perfil.ler", "rh.faq.ler"]},
     {"id": "svc-diretoria", "escopos": ["equipe.ler", "audit.ler", "aprovacoes.ler"]},
     {"id": "svc-estrategia", "escopos": ["equipe.ler", "historico.ler"]},
-    {"id": "svc-comando", "escopos": ["equipe.ler", "audit.ler", "aprovacoes.ler", "comando.ler"]}
+    {"id": "svc-comando", "escopos": ["equipe.ler", "audit.ler", "aprovacoes.ler", "comando.ler", "historico.ler"]}
   ],
   "aprovadores": {
     "enviar_email": ["gestor", "rh"]

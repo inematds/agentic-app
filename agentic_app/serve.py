@@ -17,8 +17,8 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from .apps.coaching import montar
-from .comando_html import render_comando_html
-from .relatorio import render_executivo_html, render_tendencias_html
+from .comando_html import render_agentes_html, render_negocio_html
+from .paineis_html import render_executivo_bi, render_tendencias_bi
 from .seguranca import PermissaoNegada
 from .workflow import ErroWorkflow, WorkflowPausado
 
@@ -72,18 +72,22 @@ def tratar(metodo, caminho, corpo=b"", uid="ana", a=None):
         if metodo == "GET" and rota == "/api/estado":
             return _json(200, estado(a, uid))
         if metodo == "GET" and rota in ("/executivo", "/api/executivo"):
-            quem = parse_qs(url.query).get("usuario", [uid])[0]
+            qs = {k: v[0] for k, v in parse_qs(url.query).items()}
+            quem = qs.get("usuario", uid)
+            agora = qs["agora"].replace(" ", "+") if qs.get("agora") else None
+            filtros = {k: qs[k] for k in ("periodo", "workflow") if qs.get(k)}
             try:
-                r = a.executivo(a.usuario(quem), gatilho="manual:painel")
+                r = a.executivo(a.usuario(quem), gatilho="manual:painel", filtros=filtros, agora=agora)
             except PermissaoNegada as e:
                 if rota == "/executivo":
                     return 403, "text/html; charset=utf-8", NEGADO_HTML.format(msg=html.escape(str(e)), quem="diretoria e admin").encode()
                 raise
             if rota == "/api/executivo":
                 return _json(200, r["saida"])
-            return 200, "text/html; charset=utf-8", render_executivo_html(r["saida"]).encode()
+            return 200, "text/html; charset=utf-8", render_executivo_bi(r["saida"], quem, agora or "").encode()
         if metodo == "GET" and rota in ("/tendencias", "/api/tendencias"):
-            quem = parse_qs(url.query).get("usuario", [uid])[0]
+            qs = {k: v[0] for k, v in parse_qs(url.query).items()}
+            quem = qs.get("usuario", uid)
             try:
                 r = a.tendencias(a.usuario(quem), gatilho="manual:painel")
             except PermissaoNegada as e:
@@ -93,14 +97,17 @@ def tratar(metodo, caminho, corpo=b"", uid="ana", a=None):
                 raise
             if rota == "/api/tendencias":
                 return _json(200, r["saida"])
-            return 200, "text/html; charset=utf-8", render_tendencias_html(r["saida"]).encode()
-        if metodo == "GET" and rota in ("/comando", "/api/comando"):
-            qs = parse_qs(url.query)
-            quem = qs.get("usuario", [uid])[0]
+            return 200, "text/html; charset=utf-8", render_tendencias_bi(r["saida"], quem, qs).encode()
+        if metodo == "GET" and rota in ("/comando", "/comando/negocio", "/api/comando"):
+            qs = {k: v[0] for k, v in parse_qs(url.query).items()}
+            quem = qs.get("usuario", uid)
+            agora = qs.get("agora")
+            agora = agora.replace(" ", "+") if agora else None  # '+' do fuso vira espaço na query
+            filtros = {k: qs[k] for k in ("periodo", "workflow", "gatilho", "situacao", "dia") if qs.get(k)}
+            if rota == "/comando/negocio":
+                filtros = {}  # os filtros do negócio são aplicados na página, sobre a mesma saída
             try:
-                agora = qs.get("agora", [None])[0]
-                agora = agora.replace(" ", "+") if agora else None  # '+' do fuso vira espaço na query
-                r = a.comando(a.usuario(quem), agora=agora, gatilho="manual:painel")
+                r = a.comando(a.usuario(quem), agora=agora, gatilho="manual:painel", filtros=filtros)
             except PermissaoNegada as e:
                 if rota == "/comando":
                     return 403, "text/html; charset=utf-8", NEGADO_HTML.format(
@@ -108,7 +115,9 @@ def tratar(metodo, caminho, corpo=b"", uid="ana", a=None):
                 raise
             if rota == "/api/comando":
                 return _json(200, r["saida"])
-            return 200, "text/html; charset=utf-8", render_comando_html(r["saida"], quem).encode()
+            if rota == "/comando/negocio":
+                return 200, "text/html; charset=utf-8", render_negocio_html(r["saida"], quem, agora or "", qs).encode()
+            return 200, "text/html; charset=utf-8", render_agentes_html(r["saida"], quem, agora or "").encode()
         if metodo == "GET" and rota == "/api/audit":
             return _json(200, a.audit.ler()[-50:])
         if metodo == "GET" and rota.startswith("/saida/"):

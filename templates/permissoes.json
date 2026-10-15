@@ -15,7 +15,7 @@
     "svc-rh": {"escopos": ["rh.perfil.ler", "rh.faq.ler"], "nota": "não lê metas da equipe"},
     "svc-diretoria": {"escopos": ["equipe.ler", "audit.ler", "aprovacoes.ler"], "nota": "só leitura: números da equipe, audit e fila"},
     "svc-estrategia": {"escopos": ["equipe.ler", "historico.ler"], "nota": "só leitura: equipe e histórico semanal"},
-    "svc-comando": {"escopos": ["equipe.ler", "audit.ler", "aprovacoes.ler", "comando.ler"], "nota": "só leitura: equipe, audit, fila e estado de pausas"}
+    "svc-comando": {"escopos": ["equipe.ler", "audit.ler", "aprovacoes.ler", "comando.ler", "historico.ler"], "nota": "só leitura: equipe, audit, fila, estado de pausas e histórico semanal"}
   },
   "workflows": [
     {"workflow": "followup_metas", "executar": ["gestor", "sistema"], "identidade": "svc-coaching", "aprova_acoes": ["gestor", "rh"]},

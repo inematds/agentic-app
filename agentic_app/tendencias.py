@@ -130,10 +130,27 @@ def projetar(ultimo, ritmo, meta, sentido, ultima_data: date, fim: date, rotulo_
 
 # ------------------------------------------------------------------ histórico
 def snapshot_de(executivo: dict, uns_1a1_7d: int) -> dict:
-    """Uma linha do histórico a partir do dict do painel executivo (1.1.0). Chave = segunda-feira da semana."""
+    """Uma linha do histórico a partir do dict do painel executivo (1.1.0). Chave = segunda-feira da semana.
+
+    Desde 1.4.0, execuções, rascunhos, chamadas, custo e negados vêm da janela dos ÚLTIMOS 7 DIAS (`visao`,
+    calculada pelo próprio workflow do snapshot). Antes vinham acumulados desde o início, e a série subia sempre.
+    """
     m = {x["id"]: x["valor"] for x in executivo["negocio"]["metricas"]}
     r, ctl = executivo["operacao"]["rascunhos"], executivo["controle"]
     decididos = r["aprovados_sem_edicao"] + r["aprovados_com_edicao"] + r["rejeitados"]
+    v = executivo.get("visao")
+    if v:
+        k, ds = v["kpis"], v["desfecho"]
+        dec = ds["sem_edicao"] + ds["com_edicao"] + ds["rejeitado"]
+        ref = date.fromisoformat(executivo["data_referencia"])
+        semana = ref - timedelta(days=ref.weekday())
+        return {"semana": semana.isoformat(),
+                "metas_concluidas": m.get("metas_concluidas", 0), "engajamento_medio": m.get("engajamento_medio", 0),
+                "pessoas_em_risco": m.get("pessoas_em_risco", 0), "conversa_7d": m.get("conversa_7d", 0),
+                "uns_1a1_7d": uns_1a1_7d, "execucoes": k["execucoes"],
+                "taxa_sem_edicao": round(100 * ds["sem_edicao"] / dec, 1) if dec else 0.0,
+                "chamadas_llm": k["chamadas_llm"], "custo": k["custo"],
+                "eventos_risco": k["negados"] + ctl["ferramentas_barradas"] + (0 if ctl["corrente_integra"] else 1)}
     ref = date.fromisoformat(executivo["data_referencia"])
     semana = ref - timedelta(days=ref.weekday())  # segunda-feira da semana: um ponto por semana
     return {"semana": semana.isoformat(),
